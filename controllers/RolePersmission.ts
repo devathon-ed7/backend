@@ -82,7 +82,7 @@ export class RolePersmissionController {
         }
       )
 
-      response.status(200).json({ rolePermission: updatedRolePermission })
+      response.status(204).json({ rolePermission: updatedRolePermission })
     } catch (error) {
       next(error)
     }
