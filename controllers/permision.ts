@@ -116,17 +116,19 @@ export class PermissionController {
         throw boom.notFound("permission not found")
         return
       }
-      const { name, active }: UpdatePermissionType = request.body
+      const { name }: UpdatePermissionType = request.body
 
       const data: UpdatePermissionType = {
         id,
-        name,
-        active
+        name
       }
 
       const updatedPermission = await this.permissionModel.update(data)
 
-      response.status(204).json({ permission: updatedPermission })
+      response.status(201).json({
+        message: "Permission updated successfully",
+        permission: updatedPermission
+      })
     } catch (error) {
       next(error)
     }
