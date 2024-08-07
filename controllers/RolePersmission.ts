@@ -57,27 +57,32 @@ export class RolePersmissionController {
     next: NextFunction
   ): Promise<void> => {
     try {
-      const { role_Id, permission_Id, new_role_Id, new_permission_Id } =
+      const { role_id, permission_id, new_role_id, new_permission_id } =
         request.body
 
       // check if role permission exists
       const existingRolePermission =
         await this.rolePermissionModel.getRolePermission({
-          roleId: role_Id,
-          permissionId: permission_Id
+          role_id,
+          permission_id
         })
 
       if (!existingRolePermission) {
         throw boom.notFound("Role permission not found")
-        return
       }
 
       const updatedRolePermission = await this.rolePermissionModel.update(
-        { role_Id: role_Id, permission_Id: permission_Id },
-        { role_Id: new_role_Id, permission_Id: new_permission_Id }
+        {
+          role_id,
+          permission_id
+        },
+        {
+          role_id: new_role_id,
+          permission_id: new_permission_id
+        }
       )
 
-      response.status(204).json({ rolePermission: updatedRolePermission })
+      response.status(200).json({ rolePermission: updatedRolePermission })
     } catch (error) {
       next(error)
     }

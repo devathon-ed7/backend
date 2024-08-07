@@ -6,7 +6,7 @@ export type CreateRolePermissionType = Pick<
   RolePermission,
   "role_id" | "permission_id" | "active"
 >
-export type UpdateRolePermissionType = Partial<RolePersmissionDocument>
+export type UpdateRolePermissionType = Partial<RolePermission>
 
 //importan to use many to many relationship
 export interface CompoundKey {
@@ -24,7 +24,7 @@ export interface RolePermissionModelInterface {
     active: boolean
   }): Promise<RolePersmissionDocument>
   update(
-    id: { role_Id: number; permission_Id: number },
+    id: { role_id: number; permission_id: number },
     data: UpdateRolePermissionType
   ): Promise<RolePersmissionDocument>
   getPermissionsForRole(role_id: number): Promise<RolePermission[]>
