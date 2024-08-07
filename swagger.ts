@@ -1,6 +1,6 @@
-import swaggerJsDoc from "swagger-jsdoc";
-import swaggerUi from "swagger-ui-express";
-import { Express } from "express";
+import swaggerJsDoc from "swagger-jsdoc"
+import swaggerUi from "swagger-ui-express"
+import { Express } from "express"
 
 const options = {
   swaggerDefinition: {
@@ -8,20 +8,25 @@ const options = {
     info: {
       title: "Inventory System API",
       version: "1.0.0",
-      description: "",
+      description: ""
     },
     servers: [
       {
-        url: "http://localhost:3000",
-      },
-    ],
+        url: "http://localhost:3000"
+      }
+    ]
   },
-  apis: ["./routes/*.ts"],
-};
+  apis: ["openapi.yaml"]
+}
 
-const specs = swaggerJsDoc(options);
+const specs = swaggerJsDoc(options)
 
 export default (app: Express) => {
-  app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(specs, {
-    tryItOutEnabled: true}));
-};
+  app.use(
+    "/api-docs",
+    swaggerUi.serve,
+    swaggerUi.setup(specs, {
+      tryItOutEnabled: true
+    })
+  )
+}
