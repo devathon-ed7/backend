@@ -71,6 +71,6 @@ export default class UserModel {
         username
       }
     })
-    return user
+    return user || null
   }
 }

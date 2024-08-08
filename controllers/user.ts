@@ -112,29 +112,38 @@ export class UserController {
     try {
       const userId = parseInt(request.params.id, 10)
       const { username, password } = request.body
-
+      // Check if id valid
       if (isNaN(userId)) {
         throw boom.unauthorized("Invalid user ID")
         return
       }
-
+      // Check if user exists
       const user = await this.userModel.getById(userId)
       if (!user) {
         throw boom.notFound("User not found")
         return
       }
-      // TODO: add hash to password
+
+      // Check if the new username is already taken by another user
+      const existingUser = await this.userModel.getByUsername(username)
+      if (existingUser && existingUser.id !== userId) {
+        throw boom.conflict("Username is already taken")
+        return
+      }
+
       const data = {
         id: userId,
-        username,
-        password
+        username: username || user.username,
+        password: password ? await hashPassword(password) : user.password // Use existing password if not provided
       }
 
       const updatedUser: UpdateUserType = data
 
       const updated = await this.userModel.update(updatedUser)
 
-      response.status(204).json(updated)
+      response
+        .status(200)
+        .json({ message: "User updated successfully", user: updated })
     } catch (error) {
       next(error)
     }
