@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from "express"
 import { UserModelInterface } from "../models/mariadb/user"
-import { generateAccessToken } from "../utils/middleware"
+import { generateAccessToken, omitFields } from "../utils/middleware"
 import { CustomError } from "../utils/customError"
 import { verifyPassword } from "../utils/password-utils"
 
@@ -37,7 +37,8 @@ export class AuthController {
       }
 
       const token = generateAccessToken(user)
-      response.status(200).json({ token })
+      const userWithoutPassword = omitFields(user, ["password"])
+      response.status(200).json({ user: userWithoutPassword, token })
     } catch (error) {
       next(error)
     }
