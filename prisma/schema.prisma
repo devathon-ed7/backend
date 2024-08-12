@@ -16,7 +16,6 @@ model User_accounts {
   username     String        @unique
   password     String
   user_details User_details?
-  products     Product[]
 }
 
 model User_details {
@@ -56,18 +55,18 @@ model Category {
 }
 
 model Product {
-  id          Int           @id @default(autoincrement())
+  id          Int      @id @default(autoincrement())
   name        String
   description String?
   stock       Int
+  sold        Int      @default(0)
   notes       String?
-  created_at  DateTime      @default(now())
-  updated_at  DateTime      @updatedAt()
-  user        User_accounts @relation(fields: [user_id], references: [id])
-  user_id     Int
-  supplier    Supplier      @relation(fields: [supplier_id], references: [id])
+  price       Int
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt()
+  supplier    Supplier @relation(fields: [supplier_id], references: [id])
   supplier_id Int
-  category    Category      @relation(fields: [category_id], references: [id])
+  category    Category @relation(fields: [category_id], references: [id])
   category_id Int
 }
 
