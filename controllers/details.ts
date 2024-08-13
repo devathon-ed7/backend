@@ -5,6 +5,7 @@ import { DetailsModelInterface } from "../models/mariadb/details"
 import { CreateDeatilType } from "../models/mariadb/details"
 import { UpdateDeatilType } from "../models/mariadb/details"
 import { RoleModelInterface } from "../models/mariadb/roles"
+import getFileUrl from "../utils/imageUrl"
 
 export class DetailsController {
   private detailsModel: DetailsModelInterface
@@ -67,6 +68,8 @@ export class DetailsController {
         user_account_id,
         role_id
       }: CreateDeatilType = request.body
+      //image
+      const file = request.file
 
       if (!user_account_id) {
         throw CustomError.BadRequest("user_account_id is required")
@@ -90,7 +93,7 @@ export class DetailsController {
         notes,
         email,
         user_account_id,
-        profile_filename: `https://ui-avatars.com/api/?name=${user_account.username}`,
+        profile_filename: getFileUrl(request, file) || null,
         role_id
       }
 
@@ -100,27 +103,6 @@ export class DetailsController {
       next(error)
     }
   }
-
-  // delete = async (request: Request, response: Response, next: NextFunction) => {
-  //   try {
-  //     const id = parseInt(request.params.id)
-
-  //     if (isNaN(id)) {
-  //       throw CustomError.BadRequest("Id is missing")
-  //     }
-
-  //     if (!(await this.detailsModel.getById(id))) {
-  //       throw CustomError.NotFound("User Details not found")
-  //     }
-
-  //     await this.userModel.delete(id)
-  //     response
-  //       .status(200)
-  //       .json({ message: "User Details deleted successfully" })
-  //   } catch (error) {
-  //     next(error)
-  //   }
-  // }
 
   update = async (request: Request, response: Response, next: NextFunction) => {
     try {
@@ -152,4 +134,25 @@ export class DetailsController {
       next(error)
     }
   }
+
+  // delete = async (request: Request, response: Response, next: NextFunction) => {
+  //   try {
+  //     const id = parseInt(request.params.id)
+
+  //     if (isNaN(id)) {
+  //       throw CustomError.BadRequest("Id is missing")
+  //     }
+
+  //     if (!(await this.detailsModel.getById(id))) {
+  //       throw CustomError.NotFound("User Details not found")
+  //     }
+
+  //     await this.userModel.delete(id)
+  //     response
+  //       .status(200)
+  //       .json({ message: "User Details deleted successfully" })
+  //   } catch (error) {
+  //     next(error)
+  //   }
+  // }
 }
