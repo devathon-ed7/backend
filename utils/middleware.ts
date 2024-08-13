@@ -102,13 +102,12 @@ interface RequestStorage extends Request {
   filename: string
 }
 const storage = multer.diskStorage({
-  destination(req, file, cb) {
-    cb(null, "/files")
-  },
-  filename(req: RequestStorage, file, cb) {
-    const name = uuid.v4()
+  destination: "./build/imgs",
+  filename: (req: RequestStorage, file, cb) => {
+    const name = uuid().toString()
+    const ext = file.originalname.split(".").pop()
     req.filename = name
-    cb(null, name)
+    cb(null, name + "." + ext)
   }
 })
 

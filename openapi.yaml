@@ -124,9 +124,7 @@ paths:
           content:
             application/json:
               schema:
-                properties:
-                  username:
-                    type: string
+                $ref: '#/components/schemas/Users'
         400:
           description: Unauthorized
         404:
@@ -703,6 +701,8 @@ paths:
           application/json:
             schema:
               $ref: "#/components/schemas/RolePermission"
+      security:
+        - bearerAuth: []
       responses:
         "201":
           description: Created
@@ -720,6 +720,8 @@ paths:
           application/json:
             schema:
               $ref: "#/components/schemas/RolePermission"
+      security:
+        - bearerAuth: []
       responses:
         "200":
           description: Successful response
@@ -738,6 +740,8 @@ paths:
           required: true
           schema:
             type: string
+      security:
+        - bearerAuth: []
       responses:
         "200":
           description: Successful response
@@ -780,6 +784,38 @@ components:
           description: Username for the user, between 3 and 30 characters
         password:
           type: string
+        user_details:
+          type: object
+          properties:
+            id:
+              type: integer
+              description: Unique identifier for the user details
+            description:
+              type: string
+              description: Generic description of the user
+            notes:
+              type: string
+              nullable: true
+              description: Additional notes about the user
+            email:
+              type: string
+              format: email
+              description: Email address of the user
+            name:
+              type: string
+              description: Full name of the user
+            user_account_id:
+              type: integer
+              description: Unique identifier for the user's account
+            profile_filename:
+              type: string
+              format: uri
+              description: URL of the user's profile picture
+            role_id:
+              type: integer
+              description: Unique identifier for the user's role
+
+        
     Role:
       type: object
       properties:
@@ -874,3 +910,4 @@ components:
           type: string
         active:
           type: boolean
+    

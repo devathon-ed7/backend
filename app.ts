@@ -75,6 +75,7 @@ app.use(
 app.use(
   `${API_VERSION}/details`,
   middleware.userExtractor,
+  middleware.upload.single("file"),
   createDetailsRouter({
     detailsModel: DetailsModel,
     userModel: UserModel,
@@ -91,6 +92,9 @@ app.use(
     productModel: ProductModel
   })
 )
+
+//static files
+app.use(express.static("build"))
 
 // Middlewares
 app.use(middleware.boomErrorHandler)

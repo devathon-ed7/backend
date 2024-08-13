@@ -6,6 +6,7 @@ import {
 } from "../models/mariadb/user"
 import { hashPassword } from "../utils/password-utils"
 import boom from "@hapi/boom"
+import { omitFields } from "../utils/middleware"
 
 export class UserController {
   private userModel: UserModelInterface
@@ -21,7 +22,7 @@ export class UserController {
   ): Promise<void> => {
     try {
       const users = await this.userModel.getAll()
-      response.status(200).json(users)
+      response.status(200).json({ users: users })
     } catch (error) {
       next(error)
     }
@@ -46,7 +47,8 @@ export class UserController {
         return
       }
 
-      response.status(200).json(user)
+      const userWithoutPassword = omitFields(user, ["password"])
+      response.status(200).json({ user: userWithoutPassword })
     } catch (error) {
       next(error)
     }

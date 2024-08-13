@@ -5,6 +5,7 @@ import { DetailsModelInterface } from "../models/mariadb/details"
 import { CreateDeatilType } from "../models/mariadb/details"
 import { UpdateDeatilType } from "../models/mariadb/details"
 import { RoleModelInterface } from "../models/mariadb/roles"
+import getFileUrl from "../utils/imageUrl"
 
 export class DetailsController {
   private detailsModel: DetailsModelInterface
@@ -67,6 +68,8 @@ export class DetailsController {
         user_account_id,
         role_id
       }: CreateDeatilType = request.body
+      //image
+      const file = request.file
 
       if (!user_account_id) {
         throw CustomError.BadRequest("user_account_id is required")
@@ -90,11 +93,45 @@ export class DetailsController {
         notes,
         email,
         user_account_id,
-        profile_filename: `https://ui-avatars.com/api/?name=${user_account.username}`,
+        profile_filename: file ? getFileUrl(request, file) : null,
         role_id
       }
 
       const details = await this.detailsModel.create(data)
+      response.status(200).json(details)
+    } catch (error) {
+      next(error)
+    }
+  }
+
+  update = async (request: Request, response: Response, next: NextFunction) => {
+    try {
+      const id = parseInt(request.params.id)
+      const { name, description, notes, email, role_id }: UpdateDeatilType =
+        request.body
+      //image
+      const file = request.file
+
+      if (isNaN(id)) {
+        throw CustomError.BadRequest("Id is missing")
+      }
+
+      if (!(await this.detailsModel.getById(id))) {
+        throw CustomError.NotFound("User Details not found")
+      }
+
+      const data = {
+        id: id,
+        name,
+        description,
+        notes,
+        email,
+        role_id,
+        profile_filename: file ? getFileUrl(request, file) : null
+      }
+
+      const details = await this.detailsModel.update(data)
+
       response.status(200).json(details)
     } catch (error) {
       next(error)
@@ -121,35 +158,4 @@ export class DetailsController {
   //     next(error)
   //   }
   // }
-
-  update = async (request: Request, response: Response, next: NextFunction) => {
-    try {
-      const id = parseInt(request.params.id)
-      const { name, description, notes, email, role_id }: UpdateDeatilType =
-        request.body
-
-      if (isNaN(id)) {
-        throw CustomError.BadRequest("Id is missing")
-      }
-
-      if (!(await this.detailsModel.getById(id))) {
-        throw CustomError.NotFound("User Details not found")
-      }
-
-      const data = {
-        id: id,
-        name,
-        description,
-        notes,
-        email,
-        role_id
-      }
-
-      const details = await this.detailsModel.update(data)
-
-      response.status(200).json(details)
-    } catch (error) {
-      next(error)
-    }
-  }
 }
