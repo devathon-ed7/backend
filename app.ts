@@ -40,38 +40,46 @@ app.disable("x-powered-by")
 app.set("view engine", "ejs")
 
 // Routes
+//auth
 app.use(`${API_VERSION}/auth`, createAuthRouter({ userModel: UserModel }))
+//users
 app.use(
   `${API_VERSION}/users`,
   middleware.userExtractor,
+  middleware.upload.single("file"),
   createUserRouter({ userModel: UserModel })
 )
+//suppliers
 app.use(
   `${API_VERSION}/suppliers`,
   middleware.userExtractor,
   createSupplierRouter({ supplierModel: SupplierModel })
 )
+//permissions
 app.use(
   `${API_VERSION}/permissions`,
   middleware.userExtractor,
   createPermissionRouter({ permissionModel: PermissionModel })
 )
+//categories
 app.use(
   `${API_VERSION}/categories`,
   middleware.userExtractor,
   createCategoryRoutes({ categoryModel: CategoryModel })
 )
+//roles
 app.use(
   `${API_VERSION}/roles`,
   middleware.userExtractor,
   createRoleRouter({ roleModel: RoleModel })
 )
+//role-permission
 app.use(
   `${API_VERSION}/role-permission`,
   middleware.userExtractor,
   CreateRolePersmissionRoutes({ rolePermissionModel: RolePermissionModel })
 )
-
+//details
 app.use(
   `${API_VERSION}/details`,
   middleware.userExtractor,
@@ -82,7 +90,7 @@ app.use(
     roleModel: RoleModel
   })
 )
-
+//products
 app.use(
   `${API_VERSION}/products`,
   middleware.userExtractor,

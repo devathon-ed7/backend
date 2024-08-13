@@ -7,12 +7,22 @@ import {
 import { hashPassword } from "../utils/password-utils"
 import boom from "@hapi/boom"
 import { omitFields } from "../utils/middleware"
+import { DetailsModelInterface } from "../models/mariadb/details"
+import getFileUrl from "../utils/imageUrl"
 
 export class UserController {
   private userModel: UserModelInterface
+  private detailsModel: DetailsModelInterface
 
-  constructor({ userModel }: { userModel: UserModelInterface }) {
+  constructor({
+    userModel,
+    detailsModel
+  }: {
+    userModel: UserModelInterface
+    detailsModel: DetailsModelInterface
+  }) {
     this.userModel = userModel
+    this.detailsModel = detailsModel
   }
 
   getAll = async (
@@ -60,21 +70,39 @@ export class UserController {
     next: NextFunction
   ): Promise<void> => {
     try {
-      const { username, password } = request.body
-
-      if (!username || !password) {
-        throw boom.badRequest("Missing required fields")
+      const { user } = request.body
+      const file = request.file
+      // Check if the new username is already taken by another user
+      const existingUser = await this.userModel.getByUsername(user.username)
+      if (existingUser) {
+        throw boom.conflict("Username is already taken")
         return
       }
-
-      const hashedPassword = await hashPassword(password)
-
-      const newUser: CreateUserType = { username, password: hashedPassword }
+      const data = {
+        username: user.username,
+        password: await hashPassword(user.password)
+      }
+      //create user in user_account table
+      const newUser: CreateUserType = data
       const createdUser = await this.userModel.create(newUser)
+      // user details
+
+      const user_details = user.user_details
+      if (user_details) {
+        await this.detailsModel.create({
+          description: user_details.description || null,
+          notes: user_details.notes || null,
+          user_account_id: createdUser.id,
+          role_id: parseInt(user_details.role_id, 10) || null,
+          profile_filename: getFileUrl(request, file) || null,
+          email: user_details.email || null,
+          name: user_details.name || null
+        })
+      }
 
       response
         .status(201)
-        .json({ message: "User created successfully", user: createdUser })
+        .json({ message: "User created successfully", newUser: createdUser })
     } catch (error) {
       next(error)
     }
