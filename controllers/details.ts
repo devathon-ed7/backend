@@ -109,6 +109,8 @@ export class DetailsController {
       const id = parseInt(request.params.id)
       const { name, description, notes, email, role_id }: UpdateDeatilType =
         request.body
+      //image
+      const file = request.file
 
       if (isNaN(id)) {
         throw CustomError.BadRequest("Id is missing")
@@ -124,7 +126,8 @@ export class DetailsController {
         description,
         notes,
         email,
-        role_id
+        role_id,
+        profile_filename: file ? getFileUrl(request, file) : null
       }
 
       const details = await this.detailsModel.update(data)

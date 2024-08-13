@@ -36,6 +36,13 @@ export default class UserModel {
     const user = await prisma.user_accounts.findUnique({
       where: {
         id
+      },
+      include: {
+        user_details: {
+          include: {
+            role: true
+          }
+        }
       }
     })
     return user

@@ -5,7 +5,7 @@ export type UpdateCategoryType = Partial<Category>
 const prisma = new PrismaClient()
 
 export interface CategoryModelInteface {
-  getById: (id: number) => Promise<Category>
+  getById: (id: number) => Promise<Category | null>
   getAll: () => Promise<Category[]>
   create: (data: CreateCategoryType) => Promise<Category>
   delete: (id: number) => Promise<Category>

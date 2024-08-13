@@ -1,23 +1,29 @@
 import { PrismaClient, Product } from "@prisma/client"
 
-const prisma = new PrismaClient()
-
-export type CreateProductType = Omit<
+export interface ProductDocument extends Product {}
+export type CreateProductType = Pick<
   Product,
-  "id" | "created_at" | "updated_at" | "supplier" | "category" | "sold"
+  | "name"
+  | "description"
+  | "stock"
+  | "price"
+  | "notes"
+  | "category_id"
+  | "supplier_id"
 >
 export type UpdateProductType = Partial<Product>
 
 export interface ProductModelInterface {
-  getAll: () => Promise<Product[]>
-  getById: (id: number) => Promise<Product>
-  getByIdWithRelations: (id: number) => Promise<Product>
-  getAllWithRelations: () => Promise<Product>
-  create: (data: CreateProductType) => Promise<Product>
-  update: (data: UpdateProductType) => Promise<Product>
-  delete: (id: number) => Promise<Product>
+  getAll: () => Promise<ProductDocument[]>
+  getById: (id: number) => Promise<ProductDocument | null>
+  getByIdWithRelations: (id: number) => Promise<ProductDocument | null>
+  getAllWithRelations: () => Promise<ProductDocument[] | null>
+  create: (data: CreateProductType) => Promise<ProductDocument>
+  update: (data: UpdateProductType) => Promise<ProductDocument>
+  delete: (id: number) => Promise<ProductDocument>
 }
 
+const prisma = new PrismaClient()
 export default class ProductModel {
   static getAll = async () => await prisma.product.findMany()
   static getById = async (id: number) =>
