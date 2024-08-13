@@ -126,6 +126,7 @@ export class CategoryController {
       }
 
       this.categoryModel.delete(id)
+      //Change this ✅
       response.status(204).json({ message: "Supplier deleted successfully" })
     } catch (error) {
       next(error)

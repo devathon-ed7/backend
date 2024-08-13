@@ -4,7 +4,7 @@ const prisma = new PrismaClient()
 
 export type CreateProductType = Omit<
   Product,
-  "id" | "created_at" | "updated_at" | "user" | "supplier" | "category"
+  "id" | "created_at" | "updated_at" | "supplier" | "category" | "sold"
 >
 export type UpdateProductType = Partial<Product>
 
@@ -26,7 +26,7 @@ export default class ProductModel {
     await prisma.product.delete({ where: { id } })
   static create = async (data: CreateProductType) =>
     await prisma.product.create({ data })
-  static udapte = async (data: UpdateProductType) =>
+  static update = async (data: UpdateProductType) =>
     await prisma.product.update({ where: { id: data.id }, data })
   static getAllWithRelations = async () =>
     await prisma.product.findMany({
