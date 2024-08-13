@@ -93,7 +93,7 @@ export class DetailsController {
         notes,
         email,
         user_account_id,
-        profile_filename: getFileUrl(request, file) || null,
+        profile_filename: file ? getFileUrl(request, file) : null,
         role_id
       }
 
