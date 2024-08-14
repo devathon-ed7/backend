@@ -47,7 +47,7 @@ app.use(
   `${API_VERSION}/users`,
   middleware.userExtractor,
   middleware.upload.single("file"),
-  createUserRouter({ userModel: UserModel })
+  createUserRouter({ userModel: UserModel, detailsModel: DetailsModel })
 )
 //suppliers
 app.use(

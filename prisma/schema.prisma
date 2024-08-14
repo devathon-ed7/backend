@@ -26,7 +26,7 @@ model User_details {
   name             String?
   user_account_id  Int           @unique
   profile_filename String?
-  role_id          Int?          @unique
+  role_id          Int?
   user_account     User_accounts @relation(fields: [user_account_id], references: [id])
   role             Roles?        @relation(fields: [role_id], references: [id])
 }
@@ -36,7 +36,7 @@ model Roles {
   name         String
   description  String?
   permissions  RolePermission[]
-  user_details User_details?
+  user_details User_details[]
 }
 
 model Supplier {

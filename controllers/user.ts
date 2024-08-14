@@ -2,12 +2,18 @@ import { NextFunction, Request, Response } from "express"
 import {
   CreateUserType,
   UpdateUserType,
+  UserDocument,
   UserModelInterface
 } from "../models/mariadb/user"
+import {
+  CreateDetailType,
+  DetailsModelInterface,
+  DetailsDocument
+} from "../models/mariadb/details"
 import { hashPassword } from "../utils/password-utils"
 import boom from "@hapi/boom"
 import { omitFields } from "../utils/middleware"
-import { DetailsModelInterface } from "../models/mariadb/details"
+
 import getFileUrl from "../utils/imageUrl"
 
 export class UserController {
@@ -72,37 +78,23 @@ export class UserController {
     try {
       const { user } = request.body
       const file = request.file
-      // Check if the new username is already taken by another user
-      const existingUser = await this.userModel.getByUsername(user.username)
-      if (existingUser) {
-        throw boom.conflict("Username is already taken")
-        return
-      }
-      const data = {
-        username: user.username,
-        password: await hashPassword(user.password)
-      }
-      //create user in user_account table
-      const newUser: CreateUserType = data
-      const createdUser = await this.userModel.create(newUser)
-      // user details
+      const profileFilename = file ? getFileUrl(request, file) : null
+      // Create the user
+      const createdUser = await this.createUser(user)
+      // Create the user details
+      const updatedUser = await this.createUserDetails(
+        createdUser,
+        user.user_details,
+        profileFilename
+      )
 
-      const user_details = user.user_details
-      if (user_details) {
-        await this.detailsModel.create({
-          description: user_details.description || null,
-          notes: user_details.notes || null,
-          user_account_id: createdUser.id,
-          role_id: parseInt(user_details.role_id, 10) || null,
-          profile_filename: getFileUrl(request, file) || null,
-          email: user_details.email || null,
-          name: user_details.name || null
-        })
-      }
+      // Omit the password from the response
+      const userResponse = omitFields(createdUser, ["password"])
 
-      response
-        .status(201)
-        .json({ message: "User created successfully", newUser: createdUser })
+      response.status(201).json({
+        message: "User created successfully",
+        newUser: userResponse
+      })
     } catch (error) {
       next(error)
     }
@@ -141,35 +133,68 @@ export class UserController {
   ): Promise<void> => {
     try {
       const userId = parseInt(request.params.id, 10)
-      const { username, password } = request.body
+      const { user } = request.body
+      const file = request.file
+      const profileFilename = file ? getFileUrl(request, file) : null
       // Check if id valid
       if (isNaN(userId)) {
         throw boom.unauthorized("Invalid user ID")
         return
       }
       // Check if user exists
-      const user = await this.userModel.getById(userId)
-      if (!user) {
+      const db_user = await this.userModel.getById(userId)
+      if (!db_user) {
         throw boom.notFound("User not found")
         return
       }
 
       // Check if the new username is already taken by another user
-      const existingUser = await this.userModel.getByUsername(username)
+      const existingUser = await this.userModel.getByUsername(user.username)
       if (existingUser && existingUser.id !== userId) {
         throw boom.conflict("Username is already taken")
         return
       }
-
       const data = {
         id: userId,
-        username: username || user.username,
-        password: password ? await hashPassword(password) : user.password // Use existing password if not provided
+        username: user.username || db_user.username,
+        password: user.password
+          ? await hashPassword(user.password)
+          : db_user.password // Use existing password if not provided
       }
 
-      const updatedUser: UpdateUserType = data
+      const updated = await this.userModel.update(data)
 
-      const updated = await this.userModel.update(updatedUser)
+      // details for user request
+      const user_details = user.user_details
+      console.log("user_details", user_details)
+      if (user_details) {
+        const details = await this.detailsModel.getById(
+          parseInt(user_details.id, 10)
+        )
+        console.log("details from detailsModel", details)
+        if (!details) {
+          await this.detailsModel.create({
+            description: user_details.description,
+            notes: user_details.notes || null,
+            user_account_id: userId,
+            role_id: parseInt(user_details.role_id, 10) || null,
+            profile_filename: profileFilename,
+            email: user_details.email || null,
+            name: user_details.name || null
+          })
+        } else {
+          await this.detailsModel.update({
+            id: details.id,
+            description: user_details.description || details.description,
+            notes: user_details.notes || details.notes,
+            user_account_id: details.user_account_id,
+            role_id: parseInt(user_details.role_id, 10) || details.role_id,
+            profile_filename: profileFilename || details.profile_filename,
+            email: user_details.email || details.email,
+            name: user_details.name || details.name
+          })
+        }
+      }
 
       response
         .status(200)
@@ -178,4 +203,47 @@ export class UserController {
       next(error)
     }
   }
+
+  private createUser = async (userPayload: CreateUserType) => {
+    // Check if the new username is already taken by another user
+    const existingUser = await this.userModel.getByUsername(
+      userPayload.username
+    )
+    if (existingUser) {
+      throw boom.conflict("Username is already taken")
+      return
+    }
+
+    // Hash the password
+    const hashedPassword = await hashPassword(userPayload.password)
+
+    // Create the user
+    return await this.userModel.create({
+      username: userPayload.username,
+      password: hashedPassword
+    })
+  } // CreateUser
+
+  private createUserDetails = async (
+    user: UserDocument,
+    userDetailsPayload: CreateDetailType,
+    profileFilename: string | null
+  ) => {
+    const role_id = userDetailsPayload.role_id
+      ? parseInt(userDetailsPayload.role_id.toString(), 10)
+      : null
+
+    const data = {
+      description: userDetailsPayload.description || null,
+      notes: userDetailsPayload.notes || null,
+      user_account_id: user.id,
+      role_id,
+      profile_filename: profileFilename,
+      email: userDetailsPayload.email || null,
+      name: userDetailsPayload.name || null
+    }
+
+    // Create the user details
+    return await this.detailsModel.create(data)
+  } // CreateUserDetails
 }
