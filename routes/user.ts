@@ -3,13 +3,18 @@ import { UserController } from "../controllers/user"
 import { UserModelInterface } from "../models/mariadb/user"
 import { validatorHandler } from "../utils/validatorHandler"
 import userSchemas from "../schemas/user"
+import { DetailsModelInterface } from "../models/mariadb/details"
 
 interface CreateUserRouterProps {
   userModel: UserModelInterface
+  detailsModel: DetailsModelInterface
 }
-export const createUserRouter = ({ userModel }: CreateUserRouterProps) => {
+export const createUserRouter = ({
+  userModel,
+  detailsModel
+}: CreateUserRouterProps) => {
   const userRouter = Router()
-  const userController = new UserController({ userModel })
+  const userController = new UserController({ userModel, detailsModel })
 
   userRouter.get("/", userController.getAll)
 
