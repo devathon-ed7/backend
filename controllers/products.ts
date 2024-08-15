@@ -1,5 +1,6 @@
 import {
   CreateProductType,
+  ProductDocument,
   ProductModelInterface,
   UpdateProductType
 } from "../models/mariadb/products"
@@ -7,6 +8,19 @@ import { CategoryModelInteface } from "../models/mariadb/category"
 import { SupplierModelInterface } from "../models/mariadb/supplier"
 import { Request, Response, NextFunction } from "express"
 import { CustomError } from "../utils/customError"
+import boom from "@hapi/boom"
+import { getFilesUrl } from "../utils/imageUrl"
+
+interface productRequest {
+  name: string
+  description: string | null
+  stock: number
+  notes: string | null
+  price: number
+  supplier_id: number
+  category_id: number
+  sold: number
+}
 
 export class ProductController {
   private productModel: ProductModelInterface
@@ -27,6 +41,7 @@ export class ProductController {
     this.supplierModel = supplierModel
   }
 
+  // get a product by id
   getById = async (
     request: Request,
     response: Response,
@@ -51,6 +66,7 @@ export class ProductController {
     }
   }
 
+  // get all products
   getAll = async (request: Request, response: Response, next: NextFunction) => {
     try {
       const products = await this.productModel.getAll()
@@ -60,48 +76,26 @@ export class ProductController {
     }
   }
 
+  // create a product
   create = async (request: Request, response: Response, next: NextFunction) => {
     try {
-      const {
-        name,
-        description,
-        stock,
-        notes,
-        price,
-        supplier_id,
-        category_id
-      } = request.body
+      const { product } = request.body
+      const files = request.files
+      const images =
+        files && Array.isArray(files) ? getFilesUrl(request, files) : []
 
-      if (!name || !stock || !supplier_id || !category_id || !price) {
-        throw CustomError.BadRequest("All data is necessary")
-      }
+      await this.checkifCategoryExists(product.category_id)
+      await this.checkifSupplierExists(product.supplier_id)
 
-      if (!(await this.categoryModel.getById(parseInt(category_id)))) {
-        throw CustomError.NotFound("Category id not found")
-      }
+      const createdProduct = await this.createProduct(product, images)
 
-      if (!(await this.supplierModel.getById(parseInt(supplier_id)))) {
-        throw CustomError.NotFound("Supplier id not found")
-      }
-
-      const data: CreateProductType = {
-        name,
-        description,
-        stock: parseInt(stock),
-        notes,
-        price: parseFloat(price),
-        supplier_id: parseInt(supplier_id),
-        category_id: parseInt(category_id)
-      }
-
-      const product = await this.productModel.create(data)
-
-      response.status(200).json({ product: product })
+      response.status(201).json({ product: createdProduct })
     } catch (error) {
       next(error)
     }
   }
 
+  // delete a product
   delete = async (request: Request, response: Response, next: NextFunction) => {
     try {
       const id = parseInt(request.params.id)
@@ -122,61 +116,33 @@ export class ProductController {
     }
   }
 
+  // update a product
   update = async (request: Request, response: Response, next: NextFunction) => {
     try {
       const id = parseInt(request.params.id)
+      const { product } = request.body
+      const files = request.files
+      const images =
+        files && Array.isArray(files) ? getFilesUrl(request, files) : []
 
-      if (isNaN(id)) {
-        throw CustomError.Unauthorized("Id product is missing")
-      }
+      const db_product = await this.validateProductId(id)
 
-      if (!(await this.productModel.getById(id))) {
-        throw CustomError.NotFound("Product not found")
-      }
+      await this.checkifCategoryExists(product.category_id)
+      await this.checkifSupplierExists(product.supplier_id)
 
-      const {
-        name,
-        description,
-        stock,
-        notes,
-        price,
-        supplier_id,
-        category_id,
-        sold
-      } = request.body
+      const updatedProduct = await this.updateProduct(
+        product,
+        db_product,
+        images
+      )
 
-      if (category_id) {
-        if (!(await this.categoryModel.getById(parseInt(category_id)))) {
-          throw CustomError.NotFound("Category id not found")
-        }
-      }
-
-      if (supplier_id) {
-        if (!(await this.supplierModel.getById(parseInt(supplier_id)))) {
-          throw CustomError.NotFound("Supplier id not found")
-        }
-      }
-
-      const data: UpdateProductType = {
-        id,
-        name,
-        description,
-        stock: parseInt(stock),
-        notes,
-        price: parseFloat(price),
-        supplier_id: parseInt(supplier_id),
-        category_id: parseInt(category_id),
-        sold: parseInt(sold)
-      }
-
-      const product = await this.productModel.update(data)
-
-      response.status(200).json({ product: product })
+      response.status(200).json({ product: updatedProduct })
     } catch (error) {
       next(error)
     }
   }
 
+  //  get all products with relations
   getAllWithRelations = async (
     request: Request,
     response: Response,
@@ -190,6 +156,7 @@ export class ProductController {
     }
   }
 
+  // get a product by id with relations
   getByIdWithRelations = async (
     request: Request,
     response: Response,
@@ -212,5 +179,130 @@ export class ProductController {
     } catch (error) {
       next(error)
     }
+  }
+
+  /**
+   *  Create the product
+   * @param product
+   * @param images
+   * @returns ProductDocument
+   */
+  private createProduct = async (
+    product: productRequest,
+    images: string[]
+  ): Promise<ProductDocument> => {
+    const data = await this.buildProductData(product, images)
+    try {
+      return await this.productModel.create(data)
+    } catch (error) {
+      throw boom.badImplementation("Failed to create product")
+    }
+  }
+  /**
+   *  Build the product data
+   * @param product
+   * @param images
+   * @returns CreateProductType
+   */
+  private buildProductData = async (
+    product: productRequest,
+    images: string[]
+  ): Promise<CreateProductType> => {
+    const data: CreateProductType = {
+      name: product.name,
+      description: product.description,
+      stock: product.stock,
+      notes: product.notes,
+      price: product.price,
+      supplier_id: product.supplier_id,
+      category_id: product.category_id,
+      images: images
+    }
+
+    return data
+  }
+
+  /**
+   *  Check if the category exists
+   * @param category_id
+   */
+  private checkifCategoryExists = async (category_id: number) => {
+    const category = await this.categoryModel.getById(category_id)
+    if (!category) {
+      throw CustomError.NotFound("Category id not found")
+    }
+  }
+
+  /**
+   *  Check if the supplier exists
+   * @param supplier_id
+   */
+  private checkifSupplierExists = async (supplier_id: number) => {
+    const supplier = await this.supplierModel.getById(supplier_id)
+    if (!supplier) {
+      throw CustomError.NotFound("Supplier id not found")
+    }
+  }
+
+  /**
+   *  Validate the product id
+   * @param id
+   * @returns ProductDocument
+   */
+  private validateProductId = async (id: number): Promise<ProductDocument> => {
+    const product = await this.productModel.getById(id)
+    if (!product) {
+      throw CustomError.NotFound("Product not found")
+    }
+    return product
+  }
+
+  /**
+   *  Prepare the update product data
+   * @param product
+   * @param db_product
+   * @param images
+   * @returns productDocument
+   */
+  private async updateProduct(
+    product: productRequest,
+    db_product: ProductDocument,
+    images: string[]
+  ): Promise<ProductDocument> {
+    const data = this.prepareUpdateProductData(product, db_product, images)
+
+    const updatedProduct = await this.productModel.update(data)
+
+    return updatedProduct
+  }
+
+  /**
+   *  Prepare the update product data
+   * @param product
+   * @param db_product
+   * @param images
+   * @returns updateProductType
+   */
+  private prepareUpdateProductData = (
+    product: productRequest,
+    db_product: ProductDocument,
+    images: string[]
+  ): UpdateProductType => {
+    const data: UpdateProductType = {
+      id: db_product.id,
+      name: product.name || db_product.name,
+      description: product.description || db_product.description,
+      stock: product.stock,
+      notes: product.notes || db_product.notes,
+      price: product.price || db_product.price,
+      supplier_id: product.supplier_id,
+      sold: product.sold,
+      images:
+        db_product.images.length > 0
+          ? [...db_product.images, ...images]
+          : images
+    }
+
+    return data
   }
 }

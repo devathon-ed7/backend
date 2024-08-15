@@ -10,6 +10,7 @@ export type CreateProductType = Pick<
   | "notes"
   | "category_id"
   | "supplier_id"
+  | "images"
 >
 export type UpdateProductType = Partial<Product>
 

@@ -27,7 +27,7 @@ model User_details {
   user_account_id  Int           @unique
   profile_filename String?
   role_id          Int?
-  user_account     User_accounts @relation(fields: [user_account_id], references: [id])
+  user_account     User_accounts @relation(fields: [user_account_id], references: [id], onDelete: Cascade)
   role             Roles?        @relation(fields: [role_id], references: [id])
 }
 
@@ -64,6 +64,7 @@ model Product {
   price       Int
   supplier_id Int
   category_id Int
+  images      String[]
   created_at  DateTime @default(now())
   updated_at  DateTime @updatedAt()
   supplier    Supplier @relation(fields: [supplier_id], references: [id])

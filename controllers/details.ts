@@ -7,7 +7,7 @@ import {
   UpdateUserDetailsType
 } from "../models/mariadb/details"
 import { RoleModelInterface } from "../models/mariadb/roles"
-import getFileUrl from "../utils/imageUrl"
+import { getFileUrl } from "../utils/imageUrl"
 
 export class DetailsController {
   private detailsModel: DetailsModelInterface

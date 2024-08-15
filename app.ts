@@ -94,6 +94,7 @@ app.use(
 app.use(
   `${API_VERSION}/products`,
   middleware.userExtractor,
+  middleware.upload.single("files"),
   CreateProductRouter({
     categoryModel: CategoryModel,
     supplierModel: SupplierModel,
