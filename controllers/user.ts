@@ -13,10 +13,9 @@ import {
 import { hashPassword } from "../utils/password-utils"
 import boom from "@hapi/boom"
 import { omitFields } from "../utils/middleware"
-import getFileUrl from "../utils/imageUrl"
+import { getFileUrl } from "../utils/imageUrl"
+import { numberRequest, stringRequest } from "../types"
 
-type numberRequest = number | null | undefined
-type stringRequest = string | null | undefined
 interface userDetailsRequest {
   id: numberRequest
   description: stringRequest

@@ -97,9 +97,9 @@ export const generateAccessToken = (user: UserDocument) => {
   return jwt.sign({ id: user.id }, process.env.JWT_SECRET as string)
 }
 
-// ✅ TODO: create a file to save the interfaces
 interface RequestStorage extends Request {
   filename: string
+  filenames: string[]
 }
 const storage = multer.diskStorage({
   destination: "./build/imgs",
