@@ -9,7 +9,8 @@ export type UpdateTransactionType = Partial<InventoryTransaction>
 
 export interface TransactionModelInterface {
   getAll: () => Promise<InventoryTransaction[]>
-  getById: (id: number) => Promise<InventoryTransaction | null>
+  getByProductId: (id: number) => Promise<InventoryTransaction[] | null>
+  getByCode: (code: string) => Promise<InventoryTransaction[] | null>
   create: (data: CreateTransactionType) => Promise<InventoryTransaction>
   update: (data: UpdateTransactionType) => Promise<InventoryTransaction>
   delete: (id: number) => Promise<void>
@@ -22,11 +23,17 @@ export default class TransactionModel implements TransactionModelInterface {
     return await prisma.inventoryTransaction.findMany()
   }
 
-  getById = async (id: number): Promise<InventoryTransaction | null> => {
-    return await prisma.inventoryTransaction.findUnique({
-      where: {
-        id
-      }
+  getByProductId = async (id: number): Promise<InventoryTransaction[] | null> => {
+    return await prisma.inventoryTransaction.findMany({
+      where: { product_id: id },
+      orderBy: { created_at: 'desc' },
+    })
+  }
+
+  getByCode = async (code: string): Promise<InventoryTransaction[] | null> => {
+    return await prisma.inventoryTransaction.findMany({
+      where: { code: code },
+      orderBy: { created_at: 'desc' },
     })
   }
 
