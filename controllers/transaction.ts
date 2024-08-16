@@ -60,7 +60,17 @@ export class TransactionController {
     try{
       const { transaction } = request.body;
       const transactions = await this.updateTransaction(transaction);
-      response.status(201).json({ transactions:transactions })
+      response.status(200).json({ transactions:transactions })
+    }catch (error) {
+      next(error)
+    }
+  }
+  //delete transaction
+  delete = async (request: Request, response: Response, next: NextFunction) => {
+    try{
+      const id = this.extractId(request);
+      await this.deleteTransaction(id);
+      response.status(204)
     }catch (error) {
       next(error)
     }
@@ -157,5 +167,31 @@ export class TransactionController {
     } catch (error) {
       throw boom.badImplementation("Failed to update transaction")
     }
+  }
+
+  /**
+   *  Delete the transaction
+   * @param id 
+   * @returns   Promise<InventoryTransaction[]>
+   */
+  private async deleteTransaction(id: number) {
+    try {
+      return await this.transactionModel.delete(id)
+    } catch (error) {
+      throw boom.badImplementation("Failed to delete transaction")
+    }
+  }
+
+    /**
+   *  Extract the id from the request
+   * @param request 
+   * @returns  number
+   */
+  private extractId(request: Request): number {
+    const id = parseInt(request.params.id);
+    if (isNaN(id)) {
+      throw boom.badRequest("Id is missing");
+    }
+    return id;
   }
 }//end class
