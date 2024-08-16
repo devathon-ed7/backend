@@ -58,6 +58,7 @@ model Product {
   id          Int      @id @default(autoincrement())
   name        String
   description String?
+  code        String?  @unique
   stock       Int
   sold        Int      @default(0)
   notes       String?
@@ -69,7 +70,8 @@ model Product {
   updated_at  DateTime @updatedAt()
   supplier    Supplier @relation(fields: [supplier_id], references: [id])
 
-  category Category @relation(fields: [category_id], references: [id])
+  category             Category               @relation(fields: [category_id], references: [id])
+  InventoryTransaction InventoryTransaction[]
 }
 
 model Permissions {
@@ -86,4 +88,14 @@ model RolePermission {
   active        Boolean     @default(false)
 
   @@id([role_id, permission_id])
+}
+
+model InventoryTransaction {
+  id               Int      @id @default(autoincrement())
+  product_id       Int
+  quantity         Int
+  code             String
+  transaction_type String //in  or out
+  created_at       DateTime @default(now())
+  product          Product  @relation(fields: [product_id], references: [id])
 }
