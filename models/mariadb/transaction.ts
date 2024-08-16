@@ -8,42 +8,42 @@ export type UpdateTransactionType = Partial<InventoryTransaction>
 
 
 export interface TransactionModelInterface {
-  getAll: () => Promise<InventoryTransaction[]>
-  getByProductId: (id: number) => Promise<InventoryTransaction[] | null>
-  getByCode: (code: string) => Promise<InventoryTransaction[] | null>
-  create: (data: CreateTransactionType) => Promise<InventoryTransaction>
-  update: (data: UpdateTransactionType) => Promise<InventoryTransaction>
-  delete: (id: number) => Promise<void>
+  getAll () : Promise<TransactionDocument[]>
+  getByProductId (id: number) : Promise<TransactionDocument[] | null>
+  getByCode(code: string): Promise<TransactionDocument[] | null>
+  create (data: CreateTransactionType): Promise<TransactionDocument>
+  update(data: UpdateTransactionType): Promise<TransactionDocument>
+  delete(id: number) : Promise<void>
 }
 
 const prisma = new PrismaClient()
 
-export default class TransactionModel implements TransactionModelInterface {
-  getAll = async (): Promise<InventoryTransaction[]> => {
+export default class TransactionModel  {
+  static getAll = async (): Promise<InventoryTransaction[]> => {
     return await prisma.inventoryTransaction.findMany()
   }
 
-  getByProductId = async (id: number): Promise<InventoryTransaction[] | null> => {
+  static getByProductId = async (id: number): Promise<InventoryTransaction[] | null> => {
     return await prisma.inventoryTransaction.findMany({
       where: { product_id: id },
       orderBy: { created_at: 'desc' },
     })
   }
 
-  getByCode = async (code: string): Promise<InventoryTransaction[] | null> => {
+  static getByCode = async (code: string): Promise<InventoryTransaction[] | null> => {
     return await prisma.inventoryTransaction.findMany({
       where: { code: code },
       orderBy: { created_at: 'desc' },
     })
   }
 
-  create = async (data: CreateTransactionType): Promise<InventoryTransaction> => {
+  static create = async (data: CreateTransactionType): Promise<InventoryTransaction> => {
     return await prisma.inventoryTransaction.create({
       data
     })
   }
 
-  update = async (data: UpdateTransactionType): Promise<InventoryTransaction> => {
+  static update = async (data: UpdateTransactionType): Promise<InventoryTransaction> => {
     return await prisma.inventoryTransaction.update({
       data,
       where: {
@@ -52,7 +52,7 @@ export default class TransactionModel implements TransactionModelInterface {
     })
   }
 
-  delete = async (id: number): Promise<void> => {
+  static delete = async (id: number): Promise<void> => {
     await prisma.inventoryTransaction.delete({
       where: {
         id

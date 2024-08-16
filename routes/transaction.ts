@@ -4,13 +4,14 @@ import { TransactionController } from '../controllers/transaction';
 import transactionSchemas from '../schemas/transaction';
 import { validatorHandler } from '../utils/validatorHandler';
 
-type CreateTransactionRouterProps = {
+interface CreateTransactionRouterProps {
   transactionModel: TransactionModelInterface;
 };
 
 export const createTransactionRouter = ({transactionModel}: CreateTransactionRouterProps) => {
-  const transactionRouter = Router();
+ 
   const transactionController = new TransactionController({transactionModel});
+  const transactionRouter = Router();
 
   transactionRouter.get('/', transactionController.getAll);
   transactionRouter.post('/',validatorHandler(transactionSchemas.create, 'body'), transactionController.create);

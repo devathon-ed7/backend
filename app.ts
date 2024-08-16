@@ -15,6 +15,7 @@ import { createPermissionRouter } from "./routes/permision"
 import { CreateRolePersmissionRoutes } from "./routes/RolePermision"
 import { createDetailsRouter } from "./routes/details"
 import { CreateProductRouter } from "./routes/products"
+import { createTransactionRouter } from "./routes/transaction"
 
 // Swagger
 import swagger from "./swagger"
@@ -28,6 +29,7 @@ import PermissionModel from "./models/mariadb/permission"
 import RolePermissionModel from "./models/mariadb/RolePersmission"
 import DetailsModel from "./models/mariadb/details"
 import ProductModel from "./models/mariadb/products"
+import TransactionModel from "./models/mariadb/transaction"
 
 const app: Express = express()
 swagger(app)
@@ -100,6 +102,13 @@ app.use(
     supplierModel: SupplierModel,
     productModel: ProductModel
   })
+)
+
+//transactions
+app.use(
+  `${API_VERSION}/transactions`,
+  middleware.userExtractor,
+  createTransactionRouter({transactionModel: TransactionModel  })
 )
 
 //static files
