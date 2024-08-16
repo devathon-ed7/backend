@@ -1,9 +1,11 @@
 import { UserModelInterface } from "../models/mariadb/user"
 import { Request, Response, NextFunction } from "express"
 import { CustomError } from "../utils/customError"
-import { DetailsModelInterface } from "../models/mariadb/details"
-import { CreateDeatilType } from "../models/mariadb/details"
-import { UpdateDeatilType } from "../models/mariadb/details"
+import {
+  DetailsModelInterface,
+  CreateUserDetailsType,
+  UpdateUserDetailsType
+} from "../models/mariadb/details"
 import { RoleModelInterface } from "../models/mariadb/roles"
 import getFileUrl from "../utils/imageUrl"
 
@@ -67,7 +69,7 @@ export class DetailsController {
         email,
         user_account_id,
         role_id
-      }: CreateDeatilType = request.body
+      }: CreateUserDetailsType = request.body
       //image
       const file = request.file
 
@@ -87,7 +89,7 @@ export class DetailsController {
         }
       }
 
-      const data: CreateDeatilType = {
+      const data: CreateUserDetailsType = {
         name,
         description,
         notes,
@@ -107,8 +109,13 @@ export class DetailsController {
   update = async (request: Request, response: Response, next: NextFunction) => {
     try {
       const id = parseInt(request.params.id)
-      const { name, description, notes, email, role_id }: UpdateDeatilType =
-        request.body
+      const {
+        name,
+        description,
+        notes,
+        email,
+        role_id
+      }: UpdateUserDetailsType = request.body
       //image
       const file = request.file
 

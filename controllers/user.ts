@@ -6,15 +6,27 @@ import {
   UserModelInterface
 } from "../models/mariadb/user"
 import {
-  CreateDetailType,
+  CreateUserDetailsType,
   DetailsModelInterface,
-  DetailsDocument
+  UserDetailsDocument
 } from "../models/mariadb/details"
 import { hashPassword } from "../utils/password-utils"
 import boom from "@hapi/boom"
 import { omitFields } from "../utils/middleware"
-
 import getFileUrl from "../utils/imageUrl"
+
+type numberRequest = number | null | undefined
+type stringRequest = string | null | undefined
+interface userDetailsRequest {
+  id: numberRequest
+  description: stringRequest
+  notes: stringRequest
+  role_id: numberRequest
+  email: stringRequest
+  name: stringRequest
+  user_account_id: numberRequest
+  profile_filename: stringRequest
+}
 
 export class UserController {
   private userModel: UserModelInterface
@@ -31,6 +43,12 @@ export class UserController {
     this.detailsModel = detailsModel
   }
 
+  /**
+   *  Get all the users
+   * @param request
+   * @param response
+   * @param next
+   */
   getAll = async (
     request: Request,
     response: Response,
@@ -44,6 +62,13 @@ export class UserController {
     }
   }
 
+  /**
+   *  Get the user by ID
+   * @param request
+   * @param response
+   * @param next
+   * @returns
+   */
   getById = async (
     request: Request,
     response: Response,
@@ -70,19 +95,27 @@ export class UserController {
     }
   }
 
+  /**
+   *  Create the user
+   * @param request
+   * @param response
+   * @param next
+   */
   create = async (
     request: Request,
     response: Response,
     next: NextFunction
   ): Promise<void> => {
     try {
+      // Get the user details from the request body
       const { user } = request.body
+      // Get the file from the request
       const file = request.file
       const profileFilename = file ? getFileUrl(request, file) : null
       // Create the user
       const createdUser = await this.createUser(user)
       // Create the user details
-      const updatedUser = await this.createUserDetails(
+      await this.createUserDetails(
         createdUser,
         user.user_details,
         profileFilename
@@ -126,6 +159,12 @@ export class UserController {
     }
   }
 
+  /**
+   *  Update the user
+   * @param request
+   * @param response
+   * @param next
+   */
   update = async (
     request: Request,
     response: Response,
@@ -136,114 +175,249 @@ export class UserController {
       const { user } = request.body
       const file = request.file
       const profileFilename = file ? getFileUrl(request, file) : null
-      // Check if id valid
-      if (isNaN(userId)) {
-        throw boom.unauthorized("Invalid user ID")
-        return
-      }
-      // Check if user exists
-      const db_user = await this.userModel.getById(userId)
-      if (!db_user) {
-        throw boom.notFound("User not found")
-        return
-      }
 
-      // Check if the new username is already taken by another user
-      const existingUser = await this.userModel.getByUsername(user.username)
-      if (existingUser && existingUser.id !== userId) {
-        throw boom.conflict("Username is already taken")
-        return
-      }
-      const data = {
-        id: userId,
-        username: user.username || db_user.username,
-        password: user.password
-          ? await hashPassword(user.password)
-          : db_user.password // Use existing password if not provided
-      }
+      const db_user = await this.validateUserId(userId)
+      await this.checkUsernameConflict(user.username, userId)
 
-      const updated = await this.userModel.update(data)
+      const updatedUser = await this.updateUser(db_user, user, userId)
 
-      // details for user request
-      const user_details = user.user_details
-      console.log("user_details", user_details)
-      if (user_details) {
-        const details = await this.detailsModel.getById(
-          parseInt(user_details.id, 10)
+      if (user.user_details) {
+        await this.handleUserDetails(
+          user.user_details,
+          db_user,
+          profileFilename
         )
-        console.log("details from detailsModel", details)
-        if (!details) {
-          await this.detailsModel.create({
-            description: user_details.description,
-            notes: user_details.notes || null,
-            user_account_id: userId,
-            role_id: parseInt(user_details.role_id, 10) || null,
-            profile_filename: profileFilename,
-            email: user_details.email || null,
-            name: user_details.name || null
-          })
-        } else {
-          await this.detailsModel.update({
-            id: details.id,
-            description: user_details.description || details.description,
-            notes: user_details.notes || details.notes,
-            user_account_id: details.user_account_id,
-            role_id: parseInt(user_details.role_id, 10) || details.role_id,
-            profile_filename: profileFilename || details.profile_filename,
-            email: user_details.email || details.email,
-            name: user_details.name || details.name
-          })
-        }
       }
 
       response
         .status(200)
-        .json({ message: "User updated successfully", user: updated })
+        .json({ message: "User updated successfully", user: updatedUser })
     } catch (error) {
       next(error)
     }
   }
 
-  private createUser = async (userPayload: CreateUserType) => {
-    // Check if the new username is already taken by another user
-    const existingUser = await this.userModel.getByUsername(
-      userPayload.username
-    )
+  /**
+   *  Check if the username already exists
+   * @param username
+   */
+  private checkIfUsernameExists = async (username: string): Promise<void> => {
+    const existingUser = await this.userModel.getByUsername(username)
     if (existingUser) {
       throw boom.conflict("Username is already taken")
-      return
     }
+  }
 
-    // Hash the password
+  /**
+   *  Check if the username already exists in update methods
+   * @param username
+   * @param userId
+   */
+  private async checkUsernameConflict(
+    username: string,
+    userId: number
+  ): Promise<void> {
+    const existingUser = await this.userModel.getByUsername(username)
+    if (existingUser && existingUser.id !== userId) {
+      throw boom.conflict("Username is already taken")
+    }
+  }
+
+  /**
+   * Create the user
+   * @param userPayload
+   * @returns UserDocument
+   */
+  private async createUser(userPayload: CreateUserType): Promise<UserDocument> {
+    await this.checkIfUsernameExists(userPayload.username)
     const hashedPassword = await hashPassword(userPayload.password)
 
-    // Create the user
-    return await this.userModel.create({
+    const createdUser = await this.userModel.create({
       username: userPayload.username,
       password: hashedPassword
     })
-  } // CreateUser
 
+    if (!createdUser) {
+      throw boom.badImplementation("User could not be created")
+    }
+
+    return createdUser
+  }
+
+  /**
+   *  Create the user details
+   * @param user
+   * @param userDetailsPayload
+   * @param profileFilename
+   * @returns UserDetailsDocument
+   */
   private createUserDetails = async (
     user: UserDocument,
-    userDetailsPayload: CreateDetailType,
+    userDetailsPayload: userDetailsRequest,
     profileFilename: string | null
-  ) => {
-    const role_id = userDetailsPayload.role_id
-      ? parseInt(userDetailsPayload.role_id.toString(), 10)
-      : null
+  ): Promise<UserDetailsDocument> => {
+    if (!user) {
+      throw new Error("User must be defined.")
+    }
 
-    const data = {
+    const data = this.buildUserDetailsData(
+      user,
+      userDetailsPayload,
+      profileFilename
+    )
+
+    try {
+      return await this.detailsModel.create(data)
+    } catch (error) {
+      throw boom.badImplementation("Failed to create user details")
+    }
+  }
+
+  /**
+   *  Build the data for the user details
+   * @param user
+   * @param userDetailsPayload
+   * @param profileFilename
+   * @returns CreateUserDetailsType
+   */
+  private buildUserDetailsData(
+    user: UserDocument,
+    userDetailsPayload: userDetailsRequest,
+    profileFilename: string | null
+  ): CreateUserDetailsType {
+    return {
       description: userDetailsPayload.description || null,
       notes: userDetailsPayload.notes || null,
       user_account_id: user.id,
-      role_id,
+      role_id: userDetailsPayload.role_id
+        ? parseInt(userDetailsPayload.role_id.toString(), 10)
+        : null,
       profile_filename: profileFilename,
       email: userDetailsPayload.email || null,
       name: userDetailsPayload.name || null
     }
+  }
 
-    // Create the user details
-    return await this.detailsModel.create(data)
-  } // CreateUserDetails
+  /**
+   *  Validate the user id
+   * @param userId
+   */
+  private async validateUserId(userId: number): Promise<UserDocument> {
+    const db_user = await this.userModel.getById(userId)
+    if (!db_user) {
+      throw boom.notFound("User not found")
+    }
+    return db_user
+  }
+
+  /**
+   *  Update the user
+   * @param db_user
+   * @param user
+   * @param userId
+   * @returns
+   */
+  private async updateUser(
+    db_user: UserDocument,
+    user: UpdateUserType,
+    userId: number
+  ): Promise<UserDocument> {
+    const data = {
+      id: userId,
+      username: user.username || db_user.username,
+      password: user.password
+        ? await hashPassword(user.password)
+        : db_user.password
+    }
+    try {
+      return await this.userModel.update(data)
+    } catch (error) {
+      throw boom.badImplementation("Failed to update user")
+    }
+  }
+
+  /**
+   *  Handle the user details
+   * @param userDetails
+   * @param db_user
+   * @param profileFilename
+   */
+  private async handleUserDetails(
+    userDetails: userDetailsRequest,
+    db_user: UserDocument,
+    profileFilename: string | null
+  ): Promise<void> {
+    if (!userDetails.id) {
+      throw new Error("User details ID must be provided.")
+    }
+
+    const details_id = parseInt(userDetails.id.toString(), 10)
+    const details = await this.detailsModel.getById(details_id)
+
+    if (!details) {
+      await this.createUserDetails(db_user, userDetails, profileFilename)
+    } else {
+      await this.updateUserDetails(details, userDetails, profileFilename)
+    }
+  }
+
+  /**
+   *  Check if the role has changed
+   * @param existingRoleId
+   * @param newRoleId
+   * @returns boolean
+   */
+  private hasRoleChanged(
+    existingRoleId: number | null,
+    newRoleId: number | null
+  ): boolean {
+    return existingRoleId !== newRoleId
+  }
+
+  /**
+   *  Update the user details
+   * @param details
+   * @param userDetails
+   * @param profileFilename
+   */
+  private async updateUserDetails(
+    details: UserDetailsDocument,
+    userDetails: userDetailsRequest,
+    profileFilename: string | null
+  ) {
+    const existingRoleId = details.role_id
+    const newRoleId = userDetails.role_id
+      ? parseInt(userDetails.role_id.toString(), 10)
+      : null
+
+    await this.detailsModel.update({
+      ...this.prepareUpdate(details, userDetails, profileFilename),
+      role_id: this.hasRoleChanged(existingRoleId, newRoleId)
+        ? newRoleId
+        : existingRoleId
+    })
+  }
+
+  /**
+   *  Prepare the update data
+   * @param details
+   * @param userDetails
+   * @param profileFilename
+   * @returns UpdateUserDetailsType
+   */
+  private prepareUpdate(
+    details: UserDetailsDocument,
+    userDetails: userDetailsRequest,
+    profileFilename: string | null
+  ) {
+    return {
+      id: details.id,
+      description: userDetails.description || details.description,
+      notes: userDetails.notes || details.notes,
+      user_account_id: details.user_account_id,
+      profile_filename: profileFilename || details.profile_filename,
+      email: userDetails.email || details.email,
+      name: userDetails.name || details.name
+    }
+  }
 }

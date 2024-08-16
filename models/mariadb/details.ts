@@ -1,7 +1,7 @@
 import { PrismaClient, User_details } from "@prisma/client"
 
-export interface DetailsDocument extends User_details {}
-export type CreateDetailType = Pick<
+export interface UserDetailsDocument extends User_details {}
+export type CreateUserDetailsType = Pick<
   User_details,
   | "description"
   | "notes"
@@ -11,13 +11,13 @@ export type CreateDetailType = Pick<
   | "user_account_id"
   | "profile_filename"
 >
-export type UpdateDetailType = Partial<User_details>
+export type UpdateUserDetailsType = Partial<User_details>
 
 export interface DetailsModelInterface {
   getAll: () => Promise<User_details[]>
   getById: (id: number) => Promise<User_details | null>
-  create: (data: CreateDetailType) => Promise<User_details>
-  update: (data: UpdateDetailType) => Promise<User_details>
+  create: (data: CreateUserDetailsType) => Promise<User_details>
+  update: (data: UpdateUserDetailsType) => Promise<User_details>
   delete: (id: number) => Promise<User_details>
 }
 
@@ -34,12 +34,12 @@ export default class DetailsModel {
       }
     })
   }
-  static create = async (data: CreateDetailType) => {
+  static create = async (data: CreateUserDetailsType) => {
     return await prisma.user_details.create({
       data
     })
   }
-  static update = async (data: UpdateDetailType) => {
+  static update = async (data: UpdateUserDetailsType) => {
     const details = await prisma.user_details.update({
       where: {
         id: data.id
