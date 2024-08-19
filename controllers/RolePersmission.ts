@@ -6,6 +6,11 @@ import {
 import boom from "@hapi/boom"
 import rolePermissionSchemas from "../schemas/RolePermission"
 
+interface RolePermissionRequest {
+  role_id: number
+  permission_id: number
+  active: boolean
+}
 export class RolePersmissionController {
   private rolePermissionModel: RolePermissionModelInterface
   constructor({
@@ -22,7 +27,6 @@ export class RolePersmissionController {
     next: NextFunction
   ): Promise<void> => {
     try {
-      console.log(request.body)
       const rolePermissions: CreateRolePermissionType[] = request.body
 
       // Validate the input using the updated schema
@@ -57,32 +61,19 @@ export class RolePersmissionController {
     next: NextFunction
   ): Promise<void> => {
     try {
-      const { role_id, permission_id, new_role_id, new_permission_id } =
-        request.body
-
-      // check if role permission exists
-      const existingRolePermission =
-        await this.rolePermissionModel.getRolePermission({
-          role_id,
-          permission_id
-        })
-
-      if (!existingRolePermission) {
-        throw boom.notFound("Role permission not found")
+      const rolePermission: RolePermissionRequest[] = request.body["role-permission"]
+      
+      const updatePromises = rolePermission.map( async (permission) => {
+      const id = {
+        role_id: permission.role_id,
+        permission_id: permission.permission_id
       }
+        await this.rolePermissionModel.update(id,{role_id:permission.role_id,permission_id:permission.permission_id,active:permission.active})
+      }) 
 
-      const updatedRolePermission = await this.rolePermissionModel.update(
-        {
-          role_id,
-          permission_id
-        },
-        {
-          role_id: new_role_id,
-          permission_id: new_permission_id
-        }
-      )
+      await Promise.all(updatePromises)
 
-      response.status(204).json({ rolePermission: updatedRolePermission })
+      response.status(200).json({ message:"Role permissions updated successfully" })
     } catch (error) {
       next(error)
     }

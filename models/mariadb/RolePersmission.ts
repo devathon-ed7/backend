@@ -65,12 +65,18 @@ export default class RolePermissionModel {
 
   static update = async (
     id: { role_id: number; permission_id: number },
-    data: UpdateRolePermissionType
-  ): Promise<RolePersmissionDocument> => {
+    data: CreateRolePermissionType //exits! is necessary to update
+  ) => {
     const compoundKey = RolePermissionModel.getCompoundKey(id)
-    const result = await prisma.rolePermission.update({
+    const result = await prisma.rolePermission.upsert({
       where: compoundKey,
-      data
+      update:{
+        active:data.active
+      },
+      create: {
+      role_id: data.role_id,
+      permission_id: data.permission_id,
+      active: data.active}
     })
     return result
   }

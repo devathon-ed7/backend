@@ -23,20 +23,11 @@ const createRolePermissionSchema = Joi.array()
   .min(1)
   .required()
 
-const updateRolePermissionSchema = Joi.array()
-  .items(
-    rolePermissionSchema
-      .keys({
-        new_role_id: roleIdSchema,
-        new_permission_id: permissionIdSchema
-      })
-      .required()
-  )
-  .min(1)
-  .required()
-  .options({
-    abortEarly: false
-  })
+const updateRolePermissionSchema = Joi.object({
+  "role-permission": Joi.array().items(rolePermissionSchema).required()
+})
+  
+
 
 const getPermissionsForRoleSchema = Joi.object({
   role_id: roleIdSchema
