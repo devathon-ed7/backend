@@ -47,7 +47,7 @@ export class SupplierController {
 
   create = async (request: Request, response: Response, next: NextFunction) => {
     try {
-      const { name, location, contact }: CreateSupplierType = request.body
+      const { name, location, contact } = request.body
 
       if (!name || !location || !contact) {
         throw CustomError.BadRequest("All data is required")
