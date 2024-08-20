@@ -13,6 +13,7 @@ export const createSupplierRouter = ({
   const supplierController = new SupplierController({ supplierModel })
 
   supplierRouter.get("/:id", supplierController.getById)
+  supplierRouter.post("/", supplierModel.create)
   supplierRouter.put("/update/:id", supplierController.update)
   supplierRouter.delete("/delete/:id", supplierController.delete)
   supplierRouter.get("/", supplierController.getAll)
