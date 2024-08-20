@@ -22,6 +22,13 @@ export interface ProductModelInterface {
   create: (data: CreateProductType) => Promise<ProductDocument>
   update: (data: UpdateProductType) => Promise<ProductDocument>
   delete: (id: number) => Promise<ProductDocument>
+  getByPage: ({
+    skip,
+    take
+  }: {
+    skip: number
+    take: number
+  }) => Promise<ProductDocument[]>
 }
 
 const prisma = new PrismaClient()
@@ -35,6 +42,8 @@ export default class ProductModel {
     await prisma.product.create({ data })
   static update = async (data: UpdateProductType) =>
     await prisma.product.update({ where: { id: data.id }, data })
+  static getByPage = async ({ skip, take }: { skip: number; take: number }) =>
+    await prisma.product.findMany({ skip, take })
   static getAllWithRelations = async () =>
     await prisma.product.findMany({
       include: {

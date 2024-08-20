@@ -21,6 +21,8 @@ export const CreateProductRouter = ({
     productModel,
     supplierModel
   })
+
+  productRouter.get("/page/:page/", productController.getByPage)
   productRouter.get("/relations", productController.getAllWithRelations)
   productRouter.get("/relations/:id", productController.getByIdWithRelations)
   productRouter.delete("/:id", productController.delete)
