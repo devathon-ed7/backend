@@ -66,6 +66,30 @@ export class ProductController {
     }
   }
 
+  getByPage = async (
+    request: Request,
+    response: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const page = parseInt(request.params.page)
+      const limit = parseInt(request.query.limit as string) || 16
+
+      if (!page || page < 1) {
+        throw CustomError.BadRequest("The number of page is necessary")
+      }
+
+      const skip = (page - 1) * limit
+      const take = limit * page
+
+      const products = await this.productModel.getByPage({ skip, take })
+
+      response.status(200).json(products)
+    } catch (error) {
+      next(error)
+    }
+  }
+
   // get all products
   getAll = async (request: Request, response: Response, next: NextFunction) => {
     try {
