@@ -6,6 +6,7 @@ import {
 } from "../models/mariadb/category"
 import { CategoryModelInterface } from "../interfaces"
 import { BaseController } from "./base"
+import { deleteEntity } from "../utils/controllerUtils"
 
 export class CategoryController extends BaseController {
   protected categoryModel: CategoryModelInterface
@@ -108,25 +109,15 @@ export class CategoryController extends BaseController {
     }
   }
 
-  delete = async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const id = parseInt(req.params.id, 10)
-      if (isNaN(id)) {
-        throw CustomError.Unauthorized("Invalid category ID")
-      }
-
-      const category = await this.categoryModel.getById(id)
-
-      if (!category) {
-        throw CustomError.NotFound("Category not found")
-      }
-
-      this.categoryModel.delete(id)
-      //Change this ✅
-      res.status(204).json({ message: "Supplier deleted successfully" })
-    } catch (error) {
-      next(error)
-    }
+  delete = (req: Request, res: Response, next: NextFunction) => {
+    return deleteEntity(
+      req,
+      res,
+      next,
+      this.categoryModel.getById.bind(this.categoryModel),
+      this.categoryModel.delete.bind(this.categoryModel),
+      "category"
+    )
   }
 
   update = async (req: Request, res: Response, next: NextFunction) => {

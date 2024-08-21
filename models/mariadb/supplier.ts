@@ -4,10 +4,8 @@ import { CreateSupplierType, UpdateSupplierType } from "../../interfaces"
 const prisma = new PrismaClient()
 
 export default class SupplierModel {
-  static getAll = async () => {
-    const suppliers = await prisma.supplier.findMany()
-    return suppliers
-  }
+  static getAll = async () => await prisma.supplier.findMany()
+
   static getById = async (id: number) => {
     const supplier = await prisma.supplier.findUnique({
       where: {

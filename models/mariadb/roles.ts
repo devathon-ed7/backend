@@ -14,10 +14,7 @@ export interface RoleModelInterface {
 const prisma = new PrismaClient()
 
 export default class RoleModel {
-  static getAll = async () => {
-    const roles = await prisma.roles.findMany()
-    return roles
-  }
+  static getAll = async () => await prisma.roles.findMany()
 
   static getById = async (id: number) => {
     const role = await prisma.roles.findUnique({

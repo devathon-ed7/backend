@@ -5,6 +5,7 @@ import {
   UpdatePermissionType
 } from "../models/mariadb/permission"
 import boom from "@hapi/boom"
+import { deleteEntity } from "../utils/controllerUtils"
 
 export class PermissionController {
   private permissionModel: PermissionModelInterface
@@ -77,27 +78,15 @@ export class PermissionController {
     }
   }
 
-  delete = async (
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ): Promise<void> => {
-    try {
-      const id = parseInt(req.params.id, 10)
-      if (isNaN(id)) {
-        throw boom.unauthorized("invalid id")
-        return
-      }
-      const permission = await this.permissionModel.getById(id)
-      if (!permission) {
-        throw boom.notFound("permission not found")
-        return
-      }
-      await this.permissionModel.delete(id)
-      res.status(204).json({ message: "Permission deleted successfully" })
-    } catch (error) {
-      next(error)
-    }
+  delete = (req: Request, res: Response, next: NextFunction) => {
+    return deleteEntity(
+      req,
+      res,
+      next,
+      this.permissionModel.getById.bind(this.permissionModel),
+      this.permissionModel.delete.bind(this.permissionModel),
+      "Permission"
+    )
   }
 
   update = async (
