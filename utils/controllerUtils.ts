@@ -65,3 +65,48 @@ export const validateParam = (
 
   return param
 }
+
+export const getByStringParam = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+  modelMethod: (param: string) => Promise<unknown>,
+  entityName: string,
+  paramName: string
+) => {
+  try {
+    const param = validateParam(req, paramName)
+    const result = await modelMethod(param as string)
+
+    if (!result) {
+      throw boom.notFound(`${entityName} not found`)
+    }
+
+    res.status(200).json({ result })
+  } catch (error) {
+    next(error)
+  }
+}
+
+export const getByNumberParam = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+  modelMethod: (param: number) => Promise<unknown>,
+  entityName: string,
+  paramName: string,
+  paramType: "number"
+) => {
+  try {
+    const param = validateParam(req, paramName, paramType)
+    const result = await modelMethod(param as number)
+
+    if (!result) {
+      throw boom.notFound(`${entityName} not found`)
+    }
+
+    res.status(200).json({ result })
+  } catch (error) {
+    next(error)
+  }
+}

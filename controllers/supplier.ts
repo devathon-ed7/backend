@@ -8,7 +8,8 @@ import boom from "@hapi/boom"
 import {
   deleteEntity,
   getAllEntities,
-  validateParam
+  getByNumberParam,
+  getByStringParam
 } from "../utils/controllerUtils"
 
 export class SupplierController {
@@ -20,19 +21,16 @@ export class SupplierController {
   getAll = async (_req: Request, res: Response, next: NextFunction) =>
     await getAllEntities(_req, res, next, this.supplierModel, "supplier")
 
-  getById = async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const id = validateParam(req, "id", "number")
-      const supplier = await this.supplierModel.getById(id as number)
-
-      if (!supplier) {
-        throw boom.notFound("Supplier not found")
-      }
-      res.status(200).json({ supplier: supplier })
-    } catch (error) {
-      next(error)
-    }
-  }
+  getById = async (req: Request, res: Response, next: NextFunction) =>
+    await getByNumberParam(
+      req,
+      res,
+      next,
+      this.supplierModel.getById,
+      "supplier",
+      "id",
+      "number"
+    )
 
   create = async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -90,52 +88,33 @@ export class SupplierController {
   delete = async (req: Request, res: Response, next: NextFunction) =>
     deleteEntity(req, res, next, this.supplierModel, "supplier")
 
-  getByName = async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const name = validateParam(req, "name")
-      const supplier = await this.supplierModel.getByName(name as string)
+  getByName = async (req: Request, res: Response, next: NextFunction) =>
+    await getByStringParam(
+      req,
+      res,
+      next,
+      this.supplierModel.getByName,
+      "supplier",
+      "name"
+    )
 
-      if (!supplier) {
-        throw boom.notFound("Supplier not found")
-      }
+  getByLocation = async (req: Request, res: Response, next: NextFunction) =>
+    await getByStringParam(
+      req,
+      res,
+      next,
+      this.supplierModel.getByLocation,
+      "supplier",
+      "location"
+    )
 
-      res.status(200).json(supplier)
-    } catch (error) {
-      next(error)
-    }
-  }
-
-  getByLocation = async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const location = validateParam(req, "location")
-
-      const supplier = await this.supplierModel.getByLocation(
-        location as string
-      )
-
-      if (!supplier) {
-        throw boom.notFound("Supplier not found")
-      }
-
-      res.status(200).json(supplier)
-    } catch (error) {
-      next(error)
-    }
-  }
-
-  getByContact = async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const contact = validateParam(req, "contact")
-
-      const supplier = await this.supplierModel.getByContact(contact as string)
-
-      if (!supplier) {
-        throw boom.notFound("Supplier not found")
-      }
-
-      res.status(200).json(supplier)
-    } catch (error) {
-      next(error)
-    }
-  }
+  getByContact = async (req: Request, res: Response, next: NextFunction) =>
+    await getByStringParam(
+      req,
+      res,
+      next,
+      this.supplierModel.getByContact,
+      "supplier",
+      "contact"
+    )
 }
