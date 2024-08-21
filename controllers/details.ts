@@ -28,13 +28,9 @@ export class DetailsController {
     this.roleModel = roleModel
   }
 
-  getById = async (
-    request: Request,
-    response: Response,
-    next: NextFunction
-  ) => {
+  getById = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const id = parseInt(request.params.id)
+      const id = parseInt(req.params.id)
       if (isNaN(id)) {
         throw CustomError.Unauthorized("Invalid Detail Id")
       }
@@ -45,22 +41,22 @@ export class DetailsController {
         throw CustomError.NotFound("Detail not found")
       }
 
-      response.status(200).json(deatils)
+      res.status(200).json(deatils)
     } catch (error) {
       next(error)
     }
   }
 
-  getAll = async (request: Request, response: Response, next: NextFunction) => {
+  getAll = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const details = await this.detailsModel.getAll()
-      response.status(200).json(details)
+      res.status(200).json(details)
     } catch (error) {
       next(error)
     }
   }
 
-  create = async (request: Request, response: Response, next: NextFunction) => {
+  create = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const {
         name,
@@ -69,9 +65,9 @@ export class DetailsController {
         email,
         user_account_id,
         role_id
-      }: CreateUserDetailsType = request.body
+      }: CreateUserDetailsType = req.body
       //image
-      const file = request.file
+      const file = req.file
 
       if (!user_account_id) {
         throw CustomError.BadRequest("user_account_id is required")
@@ -95,29 +91,29 @@ export class DetailsController {
         notes,
         email,
         user_account_id,
-        profile_filename: file ? getFileUrl(request, file) : null,
+        profile_filename: file ? getFileUrl(req, file) : null,
         role_id
       }
 
       const details = await this.detailsModel.create(data)
-      response.status(200).json(details)
+      res.status(200).json(details)
     } catch (error) {
       next(error)
     }
   }
 
-  update = async (request: Request, response: Response, next: NextFunction) => {
+  update = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const id = parseInt(request.params.id)
+      const id = parseInt(req.params.id)
       const {
         name,
         description,
         notes,
         email,
         role_id
-      }: UpdateUserDetailsType = request.body
+      }: UpdateUserDetailsType = req.body
       //image
-      const file = request.file
+      const file = req.file
 
       if (isNaN(id)) {
         throw CustomError.BadRequest("Id is missing")
@@ -134,20 +130,20 @@ export class DetailsController {
         notes,
         email,
         role_id,
-        profile_filename: file ? getFileUrl(request, file) : null
+        profile_filename: file ? getFileUrl(req, file) : null
       }
 
       const details = await this.detailsModel.update(data)
 
-      response.status(200).json(details)
+      res.status(200).json(details)
     } catch (error) {
       next(error)
     }
   }
 
-  // delete = async (request: Request, response: Response, next: NextFunction) => {
+  // delete = async (req: Request, res: Response, next: NextFunction) => {
   //   try {
-  //     const id = parseInt(request.params.id)
+  //     const id = parseInt(req.params.id)
 
   //     if (isNaN(id)) {
   //       throw CustomError.BadRequest("Id is missing")
@@ -158,7 +154,7 @@ export class DetailsController {
   //     }
 
   //     await this.userModel.delete(id)
-  //     response
+  //     res
   //       .status(200)
   //       .json({ message: "User Details deleted successfully" })
   //   } catch (error) {

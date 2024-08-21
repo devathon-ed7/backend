@@ -16,25 +16,25 @@ export class PermissionController {
     this.permissionModel = permissionModel
   }
   getAll = async (
-    _request: Request,
-    response: Response,
+    _req: Request,
+    res: Response,
     next: NextFunction
   ): Promise<void> => {
     try {
       const permissions = await this.permissionModel.getAll()
-      response.status(200).json(permissions)
+      res.status(200).json(permissions)
     } catch (error) {
       next(error)
     }
   }
 
   getById = async (
-    request: Request,
-    response: Response,
+    req: Request,
+    res: Response,
     next: NextFunction
   ): Promise<void> => {
     try {
-      const id = parseInt(request.params.id, 10)
+      const id = parseInt(req.params.id, 10)
       if (isNaN(id)) {
         throw boom.unauthorized("invalid id")
         return
@@ -44,19 +44,19 @@ export class PermissionController {
         throw boom.notFound("permission not found")
         return
       }
-      response.status(200).json(permission)
+      res.status(200).json(permission)
     } catch (error) {
       next(error)
     }
   }
 
   create = async (
-    request: Request,
-    response: Response,
+    req: Request,
+    res: Response,
     next: NextFunction
   ): Promise<void> => {
     try {
-      const { name }: CreatePermissionType = request.body
+      const { name }: CreatePermissionType = req.body
       if (!name) {
         throw boom.badRequest("All data is required")
         return
@@ -68,7 +68,7 @@ export class PermissionController {
 
       const createdPermission = await this.permissionModel.create(newPermission)
 
-      response.status(201).json({
+      res.status(201).json({
         message: "Permission created successfully",
         permission: createdPermission
       })
@@ -78,12 +78,12 @@ export class PermissionController {
   }
 
   delete = async (
-    request: Request,
-    response: Response,
+    req: Request,
+    res: Response,
     next: NextFunction
   ): Promise<void> => {
     try {
-      const id = parseInt(request.params.id, 10)
+      const id = parseInt(req.params.id, 10)
       if (isNaN(id)) {
         throw boom.unauthorized("invalid id")
         return
@@ -94,19 +94,19 @@ export class PermissionController {
         return
       }
       await this.permissionModel.delete(id)
-      response.status(204).json({ message: "Permission deleted successfully" })
+      res.status(204).json({ message: "Permission deleted successfully" })
     } catch (error) {
       next(error)
     }
   }
 
   update = async (
-    request: Request,
-    response: Response,
+    req: Request,
+    res: Response,
     next: NextFunction
   ): Promise<void> => {
     try {
-      const id = parseInt(request.params.id, 10)
+      const id = parseInt(req.params.id, 10)
       if (isNaN(id)) {
         throw boom.unauthorized("invalid id")
         return
@@ -116,7 +116,7 @@ export class PermissionController {
         throw boom.notFound("permission not found")
         return
       }
-      const { name }: UpdatePermissionType = request.body
+      const { name }: UpdatePermissionType = req.body
 
       const data: UpdatePermissionType = {
         id,
@@ -125,7 +125,7 @@ export class PermissionController {
 
       const updatedPermission = await this.permissionModel.update(data)
 
-      response.status(201).json({
+      res.status(201).json({
         message: "Permission updated successfully",
         permission: updatedPermission
       })

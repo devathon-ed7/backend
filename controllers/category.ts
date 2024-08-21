@@ -15,22 +15,18 @@ export class CategoryController extends BaseController {
     this.categoryModel = categoryModel
   }
 
-  getAll = async (request: Request, response: Response, next: NextFunction) => {
+  getAll = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const categories = await this.categoryModel.getAll()
-      response.status(200).json(categories)
+      res.status(200).json(categories)
     } catch (error) {
       next(error)
     }
   }
 
-  getById = async (
-    request: Request,
-    response: Response,
-    next: NextFunction
-  ) => {
+  getById = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const id = parseInt(request.params.id, 10)
+      const id = parseInt(req.params.id, 10)
 
       if (isNaN(id)) {
         throw CustomError.Unauthorized("Invalid category ID")
@@ -41,19 +37,15 @@ export class CategoryController extends BaseController {
       if (!category) {
         throw CustomError.NotFound("Category not found")
       }
-      response.status(200).json(category)
+      res.status(200).json(category)
     } catch (error) {
       next(error)
     }
   }
 
-  getByName = async (
-    request: Request,
-    response: Response,
-    next: NextFunction
-  ) => {
+  getByName = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const name = request.params.name
+      const name = req.params.name
 
       if (!name) {
         throw CustomError.Unauthorized("Invalid category name")
@@ -64,19 +56,19 @@ export class CategoryController extends BaseController {
       if (category.length == 0) {
         throw CustomError.NotFound("Category not found")
       }
-      response.status(200).json(category)
+      res.status(200).json(category)
     } catch (error) {
       next(error)
     }
   }
 
   getByDescription = async (
-    request: Request,
-    response: Response,
+    req: Request,
+    res: Response,
     next: NextFunction
   ) => {
     try {
-      const description = request.params.description
+      const description = req.params.description
 
       if (!description) {
         throw CustomError.Unauthorized("Invalid category Description")
@@ -87,15 +79,15 @@ export class CategoryController extends BaseController {
       if (category.length == 0) {
         throw CustomError.NotFound("Category not found")
       }
-      response.status(200).json(category)
+      res.status(200).json(category)
     } catch (error) {
       next(error)
     }
   }
 
-  create = async (request: Request, response: Response, next: NextFunction) => {
+  create = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const { name, description }: CreateCategoryType = request.body
+      const { name, description }: CreateCategoryType = req.body
 
       if (!name || !description) {
         throw CustomError.BadRequest("All data is required")
@@ -108,7 +100,7 @@ export class CategoryController extends BaseController {
 
       const category = await this.categoryModel.create(newCategory)
 
-      response
+      res
         .status(201)
         .json({ message: "Category created successfully", category: category })
     } catch (erorr) {
@@ -116,9 +108,9 @@ export class CategoryController extends BaseController {
     }
   }
 
-  delete = async (request: Request, response: Response, next: NextFunction) => {
+  delete = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const id = parseInt(request.params.id, 10)
+      const id = parseInt(req.params.id, 10)
       if (isNaN(id)) {
         throw CustomError.Unauthorized("Invalid category ID")
       }
@@ -131,15 +123,15 @@ export class CategoryController extends BaseController {
 
       this.categoryModel.delete(id)
       //Change this ✅
-      response.status(204).json({ message: "Supplier deleted successfully" })
+      res.status(204).json({ message: "Supplier deleted successfully" })
     } catch (error) {
       next(error)
     }
   }
 
-  update = async (request: Request, response: Response, next: NextFunction) => {
+  update = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const id = parseInt(request.params.id, 10)
+      const id = parseInt(req.params.id, 10)
 
       if (isNaN(id)) {
         throw CustomError.Unauthorized("Invalid category ID")
@@ -151,7 +143,7 @@ export class CategoryController extends BaseController {
         throw CustomError.NotFound("Category not found")
       }
 
-      const { name, description }: UpdateCategoryType = request.body
+      const { name, description }: UpdateCategoryType = req.body
 
       const data: UpdateCategoryType = {
         name,
@@ -161,7 +153,7 @@ export class CategoryController extends BaseController {
 
       const updatedCategory = await this.categoryModel.update(data)
 
-      response.status(204).json({ category: updatedCategory })
+      res.status(204).json({ category: updatedCategory })
     } catch (error) {
       next(error)
     }

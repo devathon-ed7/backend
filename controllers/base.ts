@@ -23,17 +23,17 @@ export class BaseController {
   /**
    * Generic function to get data from a model
    * @param model - The model from which the data will be obtained
-   * @param response - The response object
+   * @param res - The response object
    * @param next - The next function to handle errors
    */
   protected async getAllData<T>(
     model: ModelWithGetAll<T>,
-    response: Response,
+    res: Response,
     next: NextFunction
   ): Promise<void> {
     try {
       const data = await model.getAll()
-      response.status(200).json(data)
+      res.status(200).json(data)
     } catch (error) {
       next(error)
     }
