@@ -2,7 +2,7 @@ import { Router } from "express"
 import { RolePersmissionController } from "../controllers/RolePersmission"
 import { validatorHandler } from "../utils/validatorHandler"
 import rolePermissionSchemas from "../schemas/RolePermission"
-import { RolePermissionModelInterface } from "../models/mariadb/RolePersmission"
+import { RolePermissionModelInterface } from "../interfaces"
 
 interface CreateRolePermissionProps {
   rolePermissionModel: RolePermissionModelInterface

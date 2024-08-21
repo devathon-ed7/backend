@@ -1,18 +1,7 @@
-import { PrismaClient, User_accounts } from "@prisma/client"
+import { PrismaClient } from "@prisma/client"
 import { omitFields } from "../../utils/middleware"
-
-export interface UserDocument extends User_accounts {}
-export type CreateUserType = Pick<User_accounts, "username" | "password">
-export type UpdateUserType = Partial<User_accounts>
-
-export interface UserModelInterface {
-  getAll: () => Promise<Partial<UserDocument>[]>
-  getById: (id: number) => Promise<UserDocument | null>
-  create: (user: CreateUserType) => Promise<UserDocument>
-  update: (user: UpdateUserType) => Promise<UserDocument>
-  delete: (id: number) => Promise<UserDocument>
-  getByUsername: (username: string) => Promise<UserDocument | null>
-}
+import { CreateUserType, UpdateUserType } from "../../interfaces"
+import { findUnique, updateById } from "../../utils/modelUtils"
 
 const prisma = new PrismaClient()
 export default class UserModel {
@@ -32,59 +21,32 @@ export default class UserModel {
     return usersWithoutPassword
   }
 
-  static getById = async (id: number) => {
-    const user = await prisma.user_accounts.findUnique({
-      where: {
-        id
-      },
-      include: {
-        user_details: {
-          include: {
-            role: true
-          }
-        }
-      }
-    })
-    return user
-  }
+  static getById = async (id: number) =>
+    await findUnique(
+      prisma.user_accounts,
+      { id },
+      { user_details: { include: { role: true } } }
+    )
 
-  static create = async (user: CreateUserType) => {
-    const createdUser = await prisma.user_accounts.create({
+  static create = async (user: CreateUserType) =>
+    await prisma.user_accounts.create({
       data: user
     })
-    return createdUser
-  }
 
-  static update = async (user: UpdateUserType) => {
-    const updatedUser = await prisma.user_accounts.update({
-      data: user,
-      where: {
-        id: user.id
-      }
-    })
-    return updatedUser
-  }
-  static delete = async (id: number) => {
-    const deletedUser = await prisma.user_accounts.delete({
+  static update = async (user: UpdateUserType) =>
+    await updateById(prisma.user_accounts, user, user.id as number)
+
+  static delete = async (id: number) =>
+    await prisma.user_accounts.delete({
       where: {
         id
       }
     })
-    return deletedUser
-  }
-  static getByUsername = async (username: string) => {
-    const user = await prisma.user_accounts.findUnique({
-      where: {
-        username
-      },
-      include: {
-        user_details: {
-          include: {
-            role: true
-          }
-        }
-      }
-    })
-    return user || null
-  }
+
+  static getByUsername = async (username: string) =>
+    await findUnique(
+      prisma.user_accounts,
+      { username },
+      { user_details: { include: { role: true } } }
+    )
 }

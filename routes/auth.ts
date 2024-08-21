@@ -1,6 +1,6 @@
 import Router from "express"
 import { AuthController } from "../controllers/auth"
-import { UserModelInterface } from "../models/mariadb/user"
+import { UserModelInterface } from "../interfaces"
 
 interface CreateAuthRouterProps {
   userModel: UserModelInterface

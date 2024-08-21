@@ -1,56 +1,26 @@
-import { PrismaClient, Roles } from "@prisma/client"
-
-export interface RoleDocument extends Roles {}
-export type CreateRoleType = Pick<Roles, "name" | "description">
-export type UpdateRoleType = Partial<Roles>
-export interface RoleModelInterface {
-  getAll(): Promise<RoleDocument[]>
-  getById(id: number): Promise<RoleDocument | null>
-  create(data: CreateRoleType): Promise<RoleDocument>
-  update(data: UpdateRoleType): Promise<RoleDocument>
-  delete(id: number): Promise<RoleDocument>
-}
+import { PrismaClient } from "@prisma/client"
+import { CreateRoleType, UpdateRoleType } from "../../interfaces/roles"
+import { findUnique, updateById } from "../../utils/modelUtils"
 
 const prisma = new PrismaClient()
 
 export default class RoleModel {
-  static getAll = async () => {
-    const roles = await prisma.roles.findMany()
-    return roles
-  }
+  static getAll = async () => await prisma.roles.findMany()
 
-  static getById = async (id: number) => {
-    const role = await prisma.roles.findUnique({
-      where: {
-        id
-      }
-    })
-    return role
-  }
+  static getById = async (id: number) => await findUnique(prisma.roles, { id })
 
-  static create = async (role: CreateRoleType) => {
-    const createdRole = await prisma.roles.create({
+  static create = async (role: CreateRoleType) =>
+    await prisma.roles.create({
       data: role
     })
-    return createdRole
-  }
 
-  static update = async (role: UpdateRoleType) => {
-    const updatedRole = await prisma.roles.update({
-      data: role,
-      where: {
-        id: role.id
-      }
-    })
-    return updatedRole
-  }
+  static update = async (role: UpdateRoleType) =>
+    await updateById(prisma.roles, role, role.id as number)
 
-  static delete = async (id: number) => {
-    const deletedRole = await prisma.roles.delete({
+  static delete = async (id: number) =>
+    await prisma.roles.delete({
       where: {
         id
       }
     })
-    return deletedRole
-  }
 }

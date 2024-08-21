@@ -1,11 +1,14 @@
 import { Router } from "express"
-import { ProductModelInterface } from "../models/mariadb/products"
-import { CategoryModelInteface } from "../models/mariadb/category"
-import { SupplierModelInterface } from "../models/mariadb/supplier"
+
 import { ProductController } from "../controllers/products"
+import {
+  CategoryModelInterface,
+  ProductModelInterface,
+  SupplierModelInterface
+} from "../interfaces"
 
 type CreateProductRouterProps = {
-  categoryModel: CategoryModelInteface
+  categoryModel: CategoryModelInterface
   productModel: ProductModelInterface
   supplierModel: SupplierModelInterface
 }

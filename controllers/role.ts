@@ -3,8 +3,13 @@ import {
   RoleModelInterface,
   CreateRoleType,
   UpdateRoleType
-} from "../models/mariadb/roles"
+} from "../interfaces"
 import boom from "@hapi/boom"
+import {
+  deleteEntity,
+  getAllEntities,
+  getByNumberParam
+} from "../utils/controllerUtils"
 
 export class RoleController {
   private roleModel: RoleModelInterface
@@ -13,48 +18,27 @@ export class RoleController {
     this.roleModel = roleModel
   }
 
-  getAll = async (
-    _request: Request,
-    response: Response,
-    next: NextFunction
-  ): Promise<void> => {
-    try {
-      const roles = await this.roleModel.getAll()
-      response.status(200).json(roles)
-    } catch (error) {
-      next(error)
-    }
-  }
+  getAll = async (_req: Request, res: Response, next: NextFunction) =>
+    await getAllEntities(_req, res, next, this.roleModel, "roles")
 
-  getById = async (
-    request: Request,
-    response: Response,
-    next: NextFunction
-  ): Promise<void> => {
-    try {
-      const roleId = parseInt(request.params.id, 10)
-      if (isNaN(roleId)) {
-        throw boom.unauthorized("Invalid role ID")
-        return
-      }
-      const role = await this.roleModel.getById(roleId)
-      if (!role) {
-        throw boom.notFound("Role not found")
-        return
-      }
-      response.status(200).json(role)
-    } catch (error) {
-      next(error)
-    }
-  }
+  getById = async (req: Request, res: Response, next: NextFunction) =>
+    await getByNumberParam(
+      req,
+      res,
+      next,
+      this.roleModel.getById,
+      "roles",
+      "id",
+      "number"
+    )
 
   create = async (
-    request: Request,
-    response: Response,
+    req: Request,
+    res: Response,
     next: NextFunction
   ): Promise<void> => {
     try {
-      const { name, description } = request.body
+      const { name, description } = req.body
 
       if (!name || !description) {
         throw boom.badRequest("Missing required fields")
@@ -64,7 +48,7 @@ export class RoleController {
       const newRole: CreateRoleType = { name, description }
       const createdRole = await this.roleModel.create(newRole)
 
-      response
+      res
         .status(201)
         .json({ message: "Role created successfully", role: createdRole })
     } catch (error) {
@@ -72,37 +56,17 @@ export class RoleController {
     }
   }
 
-  delete = async (
-    request: Request,
-    response: Response,
-    next: NextFunction
-  ): Promise<void> => {
-    try {
-      const roleId = parseInt(request.params.id, 10)
-      if (isNaN(roleId)) {
-        throw boom.unauthorized("Invalid role ID")
-        return
-      }
-      const deletedRole = await this.roleModel.getById(roleId)
-      if (!deletedRole) {
-        throw boom.notFound("Role not found")
-        return
-      }
-      await this.roleModel.delete(roleId)
-      response.status(204).json({ message: "Role deleted successfully" })
-    } catch (error) {
-      next(error)
-    }
-  }
+  delete = async (req: Request, res: Response, next: NextFunction) =>
+    deleteEntity(req, res, next, this.roleModel, "role")
 
   update = async (
-    request: Request,
-    response: Response,
+    req: Request,
+    res: Response,
     next: NextFunction
   ): Promise<void> => {
     try {
-      const roleId = parseInt(request.params.id, 10)
-      const { name, description } = request.body
+      const roleId = parseInt(req.params.id, 10)
+      const { name, description } = req.body
 
       if (isNaN(roleId)) {
         throw boom.unauthorized("Invalid role ID")
@@ -125,7 +89,7 @@ export class RoleController {
 
       const updated = await this.roleModel.update(updatedRole)
 
-      response.status(204).json(updated)
+      res.status(204).json(updated)
     } catch (error) {
       next(error)
     }

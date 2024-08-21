@@ -1,6 +1,6 @@
 import Router from "express"
 import { SupplierController } from "../controllers/supplier"
-import { SupplierModelInterface } from "../models/mariadb/supplier"
+import { SupplierModelInterface } from "../interfaces"
 
 interface CreateSupplierRouterProps {
   supplierModel: SupplierModelInterface

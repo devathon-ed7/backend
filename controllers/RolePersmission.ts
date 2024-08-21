@@ -2,9 +2,10 @@ import { Request, Response, NextFunction } from "express"
 import {
   CreateRolePermissionType,
   RolePermissionModelInterface
-} from "../models/mariadb/RolePersmission"
+} from "../interfaces"
 import boom from "@hapi/boom"
 import rolePermissionSchemas from "../schemas/RolePermission"
+import { getByNumberParam } from "../utils/controllerUtils"
 
 interface RolePermissionRequest {
   role_id: number
@@ -22,12 +23,12 @@ export class RolePersmissionController {
   }
 
   create = async (
-    request: Request,
-    response: Response,
+    req: Request,
+    res: Response,
     next: NextFunction
   ): Promise<void> => {
     try {
-      const rolePermissions: CreateRolePermissionType[] = request.body
+      const rolePermissions: CreateRolePermissionType[] = req.body
 
       // Validate the input using the updated schema
       const { error } = rolePermissionSchemas.create.validate(rolePermissions)
@@ -46,7 +47,7 @@ export class RolePersmissionController {
           return await this.rolePermissionModel.create(newRolePermission)
         })
       )
-      response.status(201).json({
+      res.status(201).json({
         message: "Relation RolePermission created successfully",
         permission: results
       })
@@ -56,46 +57,46 @@ export class RolePersmissionController {
   }
 
   update = async (
-    request: Request,
-    response: Response,
+    req: Request,
+    res: Response,
     next: NextFunction
   ): Promise<void> => {
     try {
-      const rolePermission: RolePermissionRequest[] = request.body["role-permission"]
-      
-      const updatePromises = rolePermission.map( async (permission) => {
-      const id = {
-        role_id: permission.role_id,
-        permission_id: permission.permission_id
-      }
-        await this.rolePermissionModel.update(id,{role_id:permission.role_id,permission_id:permission.permission_id,active:permission.active})
-      }) 
+      const rolePermission: RolePermissionRequest[] =
+        req.body["role-permission"]
+
+      const updatePromises = rolePermission.map(async (permission) => {
+        const id = {
+          role_id: permission.role_id,
+          permission_id: permission.permission_id
+        }
+        await this.rolePermissionModel.update(id, {
+          role_id: permission.role_id,
+          permission_id: permission.permission_id,
+          active: permission.active
+        })
+      })
 
       await Promise.all(updatePromises)
 
-      response.status(200).json({ message:"Role permissions updated successfully" })
+      res.status(200).json({ message: "Role permissions updated successfully" })
     } catch (error) {
       next(error)
     }
   }
 
   getPermissionsForRole = async (
-    request: Request,
-    response: Response,
+    req: Request,
+    res: Response,
     next: NextFunction
-  ): Promise<void> => {
-    try {
-      const role_id = parseInt(request.params.role_id, 10)
-
-      const rolePermission =
-        await this.rolePermissionModel.getPermissionsForRole(role_id)
-
-      response.status(200).json({
-        message: "Role permission found successfully",
-        rolePermission
-      })
-    } catch (error) {
-      next(error)
-    }
-  }
+  ) =>
+    await getByNumberParam(
+      req,
+      res,
+      next,
+      this.rolePermissionModel.getPermissionsForRole,
+      "role-permission",
+      "role_id",
+      "number"
+    )
 } //end class

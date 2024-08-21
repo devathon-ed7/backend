@@ -2,14 +2,19 @@ import {
   CreateProductType,
   ProductDocument,
   ProductModelInterface,
-  UpdateProductType
-} from "../models/mariadb/products"
-import { CategoryModelInteface } from "../models/mariadb/category"
-import { SupplierModelInterface } from "../models/mariadb/supplier"
+  UpdateProductType,
+  CategoryModelInterface,
+  SupplierModelInterface
+} from "../interfaces"
 import { Request, Response, NextFunction } from "express"
-import { CustomError } from "../utils/customError"
 import boom from "@hapi/boom"
 import { getFilesUrl } from "../utils/imageUrl"
+import { checkIfExists } from "../utils/modelUtils"
+import {
+  deleteEntity,
+  getAllEntities,
+  getByNumberParam
+} from "../utils/controllerUtils"
 
 interface productRequest {
   name: string
@@ -24,7 +29,7 @@ interface productRequest {
 
 export class ProductController {
   private productModel: ProductModelInterface
-  private categoryModel: CategoryModelInteface
+  private categoryModel: CategoryModelInterface
   private supplierModel: SupplierModelInterface
 
   constructor({
@@ -33,7 +38,7 @@ export class ProductController {
     supplierModel
   }: {
     productModel: ProductModelInterface
-    categoryModel: CategoryModelInteface
+    categoryModel: CategoryModelInterface
     supplierModel: SupplierModelInterface
   }) {
     this.categoryModel = categoryModel
@@ -41,42 +46,24 @@ export class ProductController {
     this.supplierModel = supplierModel
   }
 
-  // get a product by id
-  getById = async (
-    request: Request,
-    response: Response,
-    next: NextFunction
-  ) => {
+  getById = async (req: Request, res: Response, next: NextFunction) =>
+    await getByNumberParam(
+      req,
+      res,
+      next,
+      this.productModel.getById,
+      "products",
+      "id",
+      "number"
+    )
+
+  getByPage = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const id = parseInt(request.params.id)
-
-      if (isNaN(id)) {
-        throw CustomError.Unauthorized("Id product is missing")
-      }
-
-      const product = await this.productModel.getById(id)
-
-      if (!product) {
-        throw CustomError.NotFound("Product not found")
-      }
-
-      response.status(200).json(product)
-    } catch (error) {
-      next(error)
-    }
-  }
-
-  getByPage = async (
-    request: Request,
-    response: Response,
-    next: NextFunction
-  ) => {
-    try {
-      const page = parseInt(request.params.page)
-      const limit = parseInt(request.query.limit as string) || 16
+      const page = parseInt(req.params.page)
+      const limit = parseInt(req.query.limit as string) || 16
 
       if (!page || page < 1) {
-        throw CustomError.BadRequest("The number of page is necessary")
+        throw boom.badRequest("The number of page is necessary")
       }
 
       const skip = (page - 1) * limit
@@ -84,75 +71,46 @@ export class ProductController {
 
       const products = await this.productModel.getByPage({ skip, take })
 
-      response.status(200).json(products)
+      res.status(200).json({ products: products })
     } catch (error) {
       next(error)
     }
   }
 
-  // get all products
-  getAll = async (request: Request, response: Response, next: NextFunction) => {
-    try {
-      const products = await this.productModel.getAll()
-      response.status(200).json(products)
-    } catch (error) {
-      next(error)
-    }
-  }
+  getAll = async (req: Request, res: Response, next: NextFunction) =>
+    await getAllEntities(req, res, next, this.productModel, "products")
 
-  // create a product
-  create = async (request: Request, response: Response, next: NextFunction) => {
+  create = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const { product } = request.body
-      const files = request.files
+      const { product } = req.body
+      const files = req.files
       const images =
-        files && Array.isArray(files) ? getFilesUrl(request, files) : []
-
-      await this.checkifCategoryExists(product.category_id)
-      await this.checkifSupplierExists(product.supplier_id)
+        files && Array.isArray(files) ? getFilesUrl(req, files) : []
+      await checkIfExists(this.productModel, product.category_id, "Category")
+      await checkIfExists(this.productModel, product.supplier_id, "Supplier")
 
       const createdProduct = await this.createProduct(product, images)
 
-      response.status(201).json({ product: createdProduct })
+      res.status(201).json({ product: createdProduct })
     } catch (error) {
       next(error)
     }
   }
 
-  // delete a product
-  delete = async (request: Request, response: Response, next: NextFunction) => {
+  delete = async (req: Request, res: Response, next: NextFunction) =>
+    deleteEntity(req, res, next, this.productModel, "product")
+
+  update = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const id = parseInt(request.params.id)
-
-      if (isNaN(id)) {
-        throw CustomError.Unauthorized("Id product is missing")
-      }
-
-      if (!(await this.productModel.getById(id))) {
-        throw CustomError.NotFound("Product not found")
-      }
-
-      await this.productModel.delete(id)
-
-      response.status(200).json({ msg: "Prodcut deleted successfully" })
-    } catch (error) {
-      next(error)
-    }
-  }
-
-  // update a product
-  update = async (request: Request, response: Response, next: NextFunction) => {
-    try {
-      const id = parseInt(request.params.id)
-      const { product } = request.body
-      const files = request.files
+      const id = parseInt(req.params.id)
+      const { product } = req.body
+      const files = req.files
       const images =
-        files && Array.isArray(files) ? getFilesUrl(request, files) : []
+        files && Array.isArray(files) ? getFilesUrl(req, files) : []
 
-      const db_product = await this.validateProductId(id)
-
-      await this.checkifCategoryExists(product.category_id)
-      await this.checkifSupplierExists(product.supplier_id)
+      const db_product = await checkIfExists(this.productModel, id, "Product")
+      await checkIfExists(this.productModel, product.category_id, "Category")
+      await checkIfExists(this.productModel, product.supplier_id, "Supplier")
 
       const updatedProduct = await this.updateProduct(
         product,
@@ -160,7 +118,7 @@ export class ProductController {
         images
       )
 
-      response.status(200).json({ product: updatedProduct })
+      res.status(200).json({ product: updatedProduct })
     } catch (error) {
       next(error)
     }
@@ -168,13 +126,13 @@ export class ProductController {
 
   //  get all products with relations
   getAllWithRelations = async (
-    request: Request,
-    response: Response,
+    req: Request,
+    res: Response,
     next: NextFunction
   ) => {
     try {
       const products = await this.productModel.getAllWithRelations()
-      response.status(200).json(products)
+      res.status(200).json(products)
     } catch (error) {
       next(error)
     }
@@ -182,24 +140,24 @@ export class ProductController {
 
   // get a product by id with relations
   getByIdWithRelations = async (
-    request: Request,
-    response: Response,
+    req: Request,
+    res: Response,
     next: NextFunction
   ) => {
     try {
-      const id = parseInt(request.params.id)
+      const id = parseInt(req.params.id)
 
       if (isNaN(id)) {
-        throw CustomError.Unauthorized("Id product is missing")
+        throw boom.notFound("Product id is missing")
       }
 
       const product = await this.productModel.getByIdWithRelations(id)
 
       if (!product) {
-        throw CustomError.NotFound("Product not found")
+        throw boom.notFound("Product not found")
       }
 
-      response.status(200).json(product)
+      res.status(200).json(product)
     } catch (error) {
       next(error)
     }
@@ -244,41 +202,6 @@ export class ProductController {
     }
 
     return data
-  }
-
-  /**
-   *  Check if the category exists
-   * @param category_id
-   */
-  private checkifCategoryExists = async (category_id: number) => {
-    const category = await this.categoryModel.getById(category_id)
-    if (!category) {
-      throw CustomError.NotFound("Category id not found")
-    }
-  }
-
-  /**
-   *  Check if the supplier exists
-   * @param supplier_id
-   */
-  private checkifSupplierExists = async (supplier_id: number) => {
-    const supplier = await this.supplierModel.getById(supplier_id)
-    if (!supplier) {
-      throw CustomError.NotFound("Supplier id not found")
-    }
-  }
-
-  /**
-   *  Validate the product id
-   * @param id
-   * @returns ProductDocument
-   */
-  private validateProductId = async (id: number): Promise<ProductDocument> => {
-    const product = await this.productModel.getById(id)
-    if (!product) {
-      throw CustomError.NotFound("Product not found")
-    }
-    return product
   }
 
   /**

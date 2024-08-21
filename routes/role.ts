@@ -1,6 +1,6 @@
 import Router from "express"
 import { RoleController } from "../controllers/role"
-import { RoleModelInterface } from "../models/mariadb/roles"
+import { RoleModelInterface } from "../interfaces"
 import { validatorHandler } from "../utils/validatorHandler"
 import rolesSchema from "../schemas/role"
 

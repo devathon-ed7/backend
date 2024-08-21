@@ -1,59 +1,26 @@
-import { PrismaClient, User_details } from "@prisma/client"
-
-export interface UserDetailsDocument extends User_details {}
-export type CreateUserDetailsType = Pick<
-  User_details,
-  | "description"
-  | "notes"
-  | "role_id"
-  | "email"
-  | "name"
-  | "user_account_id"
-  | "profile_filename"
->
-export type UpdateUserDetailsType = Partial<User_details>
-
-export interface DetailsModelInterface {
-  getAll: () => Promise<User_details[]>
-  getById: (id: number) => Promise<User_details | null>
-  create: (data: CreateUserDetailsType) => Promise<User_details>
-  update: (data: UpdateUserDetailsType) => Promise<User_details>
-  delete: (id: number) => Promise<User_details>
-}
+import { PrismaClient } from "@prisma/client"
+import { CreateUserDetailsType, UpdateUserDetailsType } from "../../interfaces"
+import { findUnique, updateById } from "../../utils/modelUtils"
 
 const prisma = new PrismaClient()
 export default class DetailsModel {
-  static getAll = async () => {
-    const details = await prisma.user_details.findMany()
-    return details
-  }
-  static getById = async (id: number) => {
-    return await prisma.user_details.findUnique({
-      where: {
-        id
-      }
-    })
-  }
-  static create = async (data: CreateUserDetailsType) => {
-    return await prisma.user_details.create({
-      data
-    })
-  }
-  static update = async (data: UpdateUserDetailsType) => {
-    const details = await prisma.user_details.update({
-      where: {
-        id: data.id
-      },
-      data
-    })
-    return details
-  }
+  static getAll = async () => await prisma.user_details.findMany()
 
-  static delete = async (id: number) => {
-    return await prisma.user_details.delete({
+  static getById = async (id: number) =>
+    await findUnique(prisma.user_details, { id })
+
+  static create = async (data: CreateUserDetailsType) =>
+    await prisma.user_details.create({
+      data
+    })
+
+  static update = async (data: UpdateUserDetailsType) =>
+    await updateById(prisma.user_details, data, data.id as number)
+
+  static delete = async (id: number) =>
+    await prisma.user_details.delete({
       where: {
         id
       }
     })
-  }
 }

@@ -1,9 +1,9 @@
 import { Router } from "express"
-import { CategoryModelInteface } from "../models/mariadb/category"
+import { CategoryModelInterface } from "../interfaces"
 import { CategoryController } from "../controllers/category"
 
 interface createCategoryRoutesProps {
-  categoryModel: CategoryModelInteface
+  categoryModel: CategoryModelInterface
 }
 
 export const createCategoryRoutes = ({

@@ -1,8 +1,10 @@
 import { Router } from "express"
-import { DetailsModelInterface } from "../models/mariadb/details"
-import { UserModelInterface } from "../models/mariadb/user"
 import { DetailsController } from "../controllers/details"
-import { RoleModelInterface } from "../models/mariadb/roles"
+import {
+  DetailsModelInterface,
+  RoleModelInterface,
+  UserModelInterface
+} from "../interfaces"
 
 interface createDetailsRouterProps {
   detailsModel: DetailsModelInterface
