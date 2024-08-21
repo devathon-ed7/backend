@@ -1,9 +1,4 @@
 import { Category } from "@prisma/client"
-import {
-  CreateCategoryType,
-  UpdateCategoryType
-} from "../models/mariadb/category"
-
 export interface CategoryModelInterface {
   getById: (id: number) => Promise<Category | null>
   getAll: () => Promise<Category[]>
@@ -13,3 +8,6 @@ export interface CategoryModelInterface {
   getByName: (name: string) => Promise<Category[]>
   getByDescription: (description: string) => Promise<Category[]>
 }
+
+export type CreateCategoryType = Pick<Category, "name" | "description">
+export type UpdateCategoryType = Partial<Category>

@@ -1,19 +1,12 @@
-import { PrismaClient, Category } from "@prisma/client"
-import { findMany } from "../../utils/modelUtils"
-export type CreateCategoryType = Pick<Category, "name" | "description">
-export type UpdateCategoryType = Partial<Category>
+import { PrismaClient } from "@prisma/client"
+import { findMany, findUnique } from "../../utils/modelUtils"
+import { CreateCategoryType, UpdateCategoryType } from "../../interfaces"
 
 const prisma = new PrismaClient()
 
 export default class CategoryModel {
-  static getById = async (id: number) => {
-    const category = await prisma.category.findUnique({
-      where: {
-        id
-      }
-    })
-    return category
-  }
+  static getById = async (id: number) =>
+    await findUnique(prisma.category, { id })
   static getAll = async () => await prisma.category.findMany()
   static create = async (data: CreateCategoryType) =>
     await prisma.category.create({ data })
