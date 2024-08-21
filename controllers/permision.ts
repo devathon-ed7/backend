@@ -5,7 +5,11 @@ import {
   UpdatePermissionType
 } from "../interfaces"
 import boom from "@hapi/boom"
-import { deleteEntity, getAllEntities } from "../utils/controllerUtils"
+import {
+  deleteEntity,
+  getAllEntities,
+  getByNumberParam
+} from "../utils/controllerUtils"
 
 export class PermissionController {
   private permissionModel: PermissionModelInterface
@@ -19,27 +23,16 @@ export class PermissionController {
   getAll = async (_req: Request, res: Response, next: NextFunction) =>
     await getAllEntities(_req, res, next, this.permissionModel, "permissions")
 
-  getById = async (
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ): Promise<void> => {
-    try {
-      const id = parseInt(req.params.id, 10)
-      if (isNaN(id)) {
-        throw boom.unauthorized("invalid id")
-        return
-      }
-      const permission = await this.permissionModel.getById(id)
-      if (!permission) {
-        throw boom.notFound("permission not found")
-        return
-      }
-      res.status(200).json(permission)
-    } catch (error) {
-      next(error)
-    }
-  }
+  getById = async (req: Request, res: Response, next: NextFunction) =>
+    await getByNumberParam(
+      req,
+      res,
+      next,
+      this.permissionModel.getById,
+      "permissions",
+      "id",
+      "number"
+    )
 
   create = async (
     req: Request,

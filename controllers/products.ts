@@ -10,7 +10,11 @@ import { Request, Response, NextFunction } from "express"
 import boom from "@hapi/boom"
 import { getFilesUrl } from "../utils/imageUrl"
 import { checkIfExists } from "../utils/modelUtils"
-import { deleteEntity, getAllEntities } from "../utils/controllerUtils"
+import {
+  deleteEntity,
+  getAllEntities,
+  getByNumberParam
+} from "../utils/controllerUtils"
 
 interface productRequest {
   name: string
@@ -42,25 +46,16 @@ export class ProductController {
     this.supplierModel = supplierModel
   }
 
-  getById = async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const id = parseInt(req.params.id)
-
-      if (isNaN(id)) {
-        throw boom.unauthorized("Id product is missing")
-      }
-
-      const product = await this.productModel.getById(id)
-
-      if (!product) {
-        throw boom.notFound("Product not found")
-      }
-
-      res.status(200).json({ product: product })
-    } catch (error) {
-      next(error)
-    }
-  }
+  getById = async (req: Request, res: Response, next: NextFunction) =>
+    await getByNumberParam(
+      req,
+      res,
+      next,
+      this.productModel.getById,
+      "products",
+      "id",
+      "number"
+    )
 
   getByPage = async (req: Request, res: Response, next: NextFunction) => {
     try {

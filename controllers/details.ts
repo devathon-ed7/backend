@@ -8,7 +8,7 @@ import {
 } from "../interfaces"
 import { getFileUrl } from "../utils/imageUrl"
 import boom from "@hapi/boom"
-import { getAllEntities } from "../utils/controllerUtils"
+import { getAllEntities, getByNumberParam } from "../utils/controllerUtils"
 
 export class DetailsController {
   private detailsModel: DetailsModelInterface
@@ -29,24 +29,16 @@ export class DetailsController {
     this.roleModel = roleModel
   }
 
-  getById = async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const id = parseInt(req.params.id)
-      if (isNaN(id)) {
-        throw boom.unauthorized("Invalid Detail Id")
-      }
-
-      const deatils = await this.detailsModel.getById(id)
-
-      if (!deatils) {
-        throw boom.notFound("Detail not found")
-      }
-
-      res.status(200).json(deatils)
-    } catch (error) {
-      next(error)
-    }
-  }
+  getById = async (req: Request, res: Response, next: NextFunction) =>
+    await getByNumberParam(
+      req,
+      res,
+      next,
+      this.detailsModel.getById,
+      "details",
+      "id",
+      "number"
+    )
 
   getAll = async (req: Request, res: Response, next: NextFunction) =>
     await getAllEntities(req, res, next, this.detailsModel, "details")

@@ -5,7 +5,11 @@ import {
   UpdateRoleType
 } from "../interfaces"
 import boom from "@hapi/boom"
-import { deleteEntity, getAllEntities } from "../utils/controllerUtils"
+import {
+  deleteEntity,
+  getAllEntities,
+  getByNumberParam
+} from "../utils/controllerUtils"
 
 export class RoleController {
   private roleModel: RoleModelInterface
@@ -17,27 +21,16 @@ export class RoleController {
   getAll = async (_req: Request, res: Response, next: NextFunction) =>
     await getAllEntities(_req, res, next, this.roleModel, "roles")
 
-  getById = async (
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ): Promise<void> => {
-    try {
-      const roleId = parseInt(req.params.id, 10)
-      if (isNaN(roleId)) {
-        throw boom.unauthorized("Invalid role ID")
-        return
-      }
-      const role = await this.roleModel.getById(roleId)
-      if (!role) {
-        throw boom.notFound("Role not found")
-        return
-      }
-      res.status(200).json(role)
-    } catch (error) {
-      next(error)
-    }
-  }
+  getById = async (req: Request, res: Response, next: NextFunction) =>
+    await getByNumberParam(
+      req,
+      res,
+      next,
+      this.roleModel.getById,
+      "roles",
+      "id",
+      "number"
+    )
 
   create = async (
     req: Request,

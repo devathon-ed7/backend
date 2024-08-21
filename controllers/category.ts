@@ -1,9 +1,13 @@
 import { NextFunction, Request, Response } from "express"
-import { CustomError } from "../utils/customError"
 import { CreateCategoryType, UpdateCategoryType } from "../interfaces"
 import { CategoryModelInterface } from "../interfaces"
-
-import { deleteEntity, getAllEntities } from "../utils/controllerUtils"
+import boom from "@hapi/boom"
+import {
+  deleteEntity,
+  getAllEntities,
+  getByNumberParam,
+  getByStringParam
+} from "../utils/controllerUtils"
 
 export class CategoryController {
   private categoryModel: CategoryModelInterface
@@ -15,73 +19,43 @@ export class CategoryController {
   getAll = async (req: Request, res: Response, next: NextFunction) =>
     await getAllEntities(req, res, next, this.categoryModel, "categories")
 
-  getById = async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const id = parseInt(req.params.id, 10)
+  getById = async (req: Request, res: Response, next: NextFunction) =>
+    await getByNumberParam(
+      req,
+      res,
+      next,
+      this.categoryModel.getById,
+      "categories",
+      "id",
+      "number"
+    )
 
-      if (isNaN(id)) {
-        throw CustomError.Unauthorized("Invalid category ID")
-      }
+  getByName = async (req: Request, res: Response, next: NextFunction) =>
+    await getByStringParam(
+      req,
+      res,
+      next,
+      this.categoryModel.getByName,
+      "categories",
+      "name"
+    )
 
-      const category = await this.categoryModel.getById(id)
-
-      if (!category) {
-        throw CustomError.NotFound("Category not found")
-      }
-      res.status(200).json(category)
-    } catch (error) {
-      next(error)
-    }
-  }
-
-  getByName = async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const name = req.params.name
-
-      if (!name) {
-        throw CustomError.Unauthorized("Invalid category name")
-      }
-
-      const category = await this.categoryModel.getByName(name)
-
-      if (category.length == 0) {
-        throw CustomError.NotFound("Category not found")
-      }
-      res.status(200).json(category)
-    } catch (error) {
-      next(error)
-    }
-  }
-
-  getByDescription = async (
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ) => {
-    try {
-      const description = req.params.description
-
-      if (!description) {
-        throw CustomError.Unauthorized("Invalid category Description")
-      }
-
-      const category = await this.categoryModel.getByDescription(description)
-
-      if (category.length == 0) {
-        throw CustomError.NotFound("Category not found")
-      }
-      res.status(200).json(category)
-    } catch (error) {
-      next(error)
-    }
-  }
+  getByDescription = async (req: Request, res: Response, next: NextFunction) =>
+    await getByStringParam(
+      req,
+      res,
+      next,
+      this.categoryModel.getByDescription,
+      "categories",
+      "description"
+    )
 
   create = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { name, description }: CreateCategoryType = req.body
 
       if (!name || !description) {
-        throw CustomError.BadRequest("All data is required")
+        throw boom.badRequest("All data is required")
       }
 
       const newCategory: CreateCategoryType = {
@@ -107,13 +81,13 @@ export class CategoryController {
       const id = parseInt(req.params.id, 10)
 
       if (isNaN(id)) {
-        throw CustomError.Unauthorized("Invalid category ID")
+        throw boom.unauthorized("Invalid category ID")
       }
 
       const category = await this.categoryModel.getById(id)
 
       if (!category) {
-        throw CustomError.NotFound("Category not found")
+        throw boom.notFound("Category not found")
       }
 
       const { name, description }: UpdateCategoryType = req.body

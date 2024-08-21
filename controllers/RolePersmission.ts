@@ -5,6 +5,7 @@ import {
 } from "../interfaces"
 import boom from "@hapi/boom"
 import rolePermissionSchemas from "../schemas/RolePermission"
+import { getByNumberParam } from "../utils/controllerUtils"
 
 interface RolePermissionRequest {
   role_id: number
@@ -88,19 +89,14 @@ export class RolePersmissionController {
     req: Request,
     res: Response,
     next: NextFunction
-  ): Promise<void> => {
-    try {
-      const role_id = parseInt(req.params.role_id, 10)
-
-      const rolePermission =
-        await this.rolePermissionModel.getPermissionsForRole(role_id)
-
-      res.status(200).json({
-        message: "Role permission found successfully",
-        rolePermission
-      })
-    } catch (error) {
-      next(error)
-    }
-  }
+  ) =>
+    await getByNumberParam(
+      req,
+      res,
+      next,
+      this.rolePermissionModel.getPermissionsForRole,
+      "role-permission",
+      "role_id",
+      "number"
+    )
 } //end class
