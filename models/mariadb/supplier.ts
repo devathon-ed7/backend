@@ -1,60 +1,41 @@
 import { PrismaClient } from "@prisma/client"
 import { CreateSupplierType, UpdateSupplierType } from "../../interfaces"
+import { findMany, findUnique } from "../../utils/modelUtils"
 
 const prisma = new PrismaClient()
 
 export default class SupplierModel {
   static getAll = async () => await prisma.supplier.findMany()
 
-  static getById = async (id: number) => {
-    const supplier = await prisma.supplier.findUnique({
-      where: {
-        id
-      }
-    })
-    return supplier
-  }
-  static getByName = async (name: string) => {
-    return await this.findSuppliers("name", name)
-  }
+  static getById = async (id: number) =>
+    await findUnique(prisma.supplier, { id })
 
-  static getByLocation = async (location: string) => {
-    return await this.findSuppliers("location", location)
-  }
+  static getByName = async (name: string) =>
+    await findMany(prisma.supplier, "name", name)
 
-  static getByContact = async (contact: string) => {
-    return await this.findSuppliers("contact", contact)
-  }
+  static getByLocation = async (location: string) =>
+    await findMany(prisma.supplier, "location", location)
+
+  static getByContact = async (contact: string) =>
+    await findMany(prisma.supplier, "contact", contact)
+
   static create = async (data: CreateSupplierType) =>
     await prisma.supplier.create({
       data
     })
 
-  static update = async (data: UpdateSupplierType) => {
-    const updatedSupplier = await prisma.supplier.update({
+  static update = async (data: UpdateSupplierType) =>
+    await prisma.supplier.update({
       data,
       where: {
         id: data.id
       }
     })
-    return updatedSupplier
-  }
-  static delete = async (id: number) => {
-    const deletedSupplier = await prisma.supplier.delete({
+
+  static delete = async (id: number) =>
+    await prisma.supplier.delete({
       where: {
         id
       }
     })
-    return deletedSupplier
-  }
-
-  private static async findSuppliers(field: string, value: string) {
-    return await prisma.supplier.findMany({
-      where: {
-        [field]: {
-          contains: value
-        }
-      }
-    })
-  }
 }
