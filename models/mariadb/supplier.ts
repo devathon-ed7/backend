@@ -1,20 +1,8 @@
-import { PrismaClient, Supplier } from "@prisma/client"
+import { PrismaClient } from "@prisma/client"
+import { CreateSupplierType, UpdateSupplierType } from "../../interfaces"
 
 const prisma = new PrismaClient()
 
-export type CreateSupplierType = Pick<Supplier, "name" | "location" | "contact">
-export type UpdateSupplierType = Partial<Supplier>
-
-export interface SupplierModelInterface {
-  getAll: () => Promise<Supplier[]>
-  getById: (id: number) => Promise<Supplier | null>
-  getByName: (name: string) => Promise<Supplier[]>
-  getByLocation: (location: string) => Promise<Supplier[]>
-  getByContact: (contact: string) => Promise<Supplier[]>
-  create: (data: CreateSupplierType) => Promise<Supplier>
-  update: (data: UpdateSupplierType) => Promise<Supplier>
-  delete: (id: number) => Promise<Supplier>
-}
 export default class SupplierModel {
   static getAll = async () => {
     const suppliers = await prisma.supplier.findMany()
@@ -29,34 +17,15 @@ export default class SupplierModel {
     return supplier
   }
   static getByName = async (name: string) => {
-    const supplier = await prisma.supplier.findMany({
-      where: {
-        name: {
-          contains: name
-        }
-      }
-    })
-    return supplier
+    return await this.findSuppliers("name", name)
   }
+
   static getByLocation = async (location: string) => {
-    const supplier = await prisma.supplier.findMany({
-      where: {
-        location: {
-          contains: location
-        }
-      }
-    })
-    return supplier
+    return await this.findSuppliers("location", location)
   }
+
   static getByContact = async (contact: string) => {
-    const supplier = await prisma.supplier.findMany({
-      where: {
-        contact: {
-          contains: contact
-        }
-      }
-    })
-    return supplier
+    return await this.findSuppliers("contact", contact)
   }
   static create = async (data: CreateSupplierType) => {
     const createdSupplier = await prisma.supplier.create({
@@ -80,5 +49,15 @@ export default class SupplierModel {
       }
     })
     return deletedSupplier
+  }
+
+  private static async findSuppliers(field: string, value: string) {
+    return await prisma.supplier.findMany({
+      where: {
+        [field]: {
+          contains: value
+        }
+      }
+    })
   }
 }

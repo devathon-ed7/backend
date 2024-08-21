@@ -1,18 +1,6 @@
 import { PrismaClient, User_accounts } from "@prisma/client"
 import { omitFields } from "../../utils/middleware"
-
-export interface UserDocument extends User_accounts {}
-export type CreateUserType = Pick<User_accounts, "username" | "password">
-export type UpdateUserType = Partial<User_accounts>
-
-export interface UserModelInterface {
-  getAll: () => Promise<Partial<UserDocument>[]>
-  getById: (id: number) => Promise<UserDocument | null>
-  create: (user: CreateUserType) => Promise<UserDocument>
-  update: (user: UpdateUserType) => Promise<UserDocument>
-  delete: (id: number) => Promise<UserDocument>
-  getByUsername: (username: string) => Promise<UserDocument | null>
-}
+import { CreateUserType, UpdateUserType } from "../../interfaces"
 
 const prisma = new PrismaClient()
 export default class UserModel {
@@ -32,20 +20,9 @@ export default class UserModel {
     return usersWithoutPassword
   }
 
-  static getById = async (id: number) => {
-    const user = await prisma.user_accounts.findUnique({
-      where: {
-        id
-      },
-      include: {
-        user_details: {
-          include: {
-            role: true
-          }
-        }
-      }
-    })
-    return user
+  static async getById(id: number) {
+    const user = await this.findUser({ id })
+    return user || null
   }
 
   static create = async (user: CreateUserType) => {
@@ -72,11 +49,31 @@ export default class UserModel {
     })
     return deletedUser
   }
-  static getByUsername = async (username: string) => {
-    const user = await prisma.user_accounts.findUnique({
-      where: {
-        username
-      },
+  static async getByUsername(username: string) {
+    const user = await this.findUser({ username })
+    return user || null
+  }
+
+  private static async findUser(where: {
+    id?: number
+    username?: string
+  }): Promise<User_accounts | null> {
+    if (!where.id && !where.username) {
+      throw new Error("You must provide an id or a username.")
+    }
+
+    const whereClause: { id?: number; username?: string } = {}
+
+    if (where.id !== undefined) {
+      whereClause.id = where.id
+    }
+
+    if (where.username !== undefined) {
+      whereClause.username = where.username
+    }
+
+    return await prisma.user_accounts.findUnique({
+      where: whereClause as { id: number } | { username: string },
       include: {
         user_details: {
           include: {
@@ -85,6 +82,5 @@ export default class UserModel {
         }
       }
     })
-    return user || null
   }
 }

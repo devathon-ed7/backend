@@ -1,13 +1,17 @@
 import { NextFunction, Request, Response } from "express"
-import { CategoryModelInteface } from "../models/mariadb/category"
 import { CustomError } from "../utils/customError"
 import {
   CreateCategoryType,
   UpdateCategoryType
 } from "../models/mariadb/category"
-export class CategoryController {
-  private categoryModel: CategoryModelInteface
-  constructor({ categoryModel }: { categoryModel: CategoryModelInteface }) {
+import { CategoryModelInterface } from "../interfaces"
+import { BaseController } from "./base"
+
+export class CategoryController extends BaseController {
+  protected categoryModel: CategoryModelInterface
+
+  constructor({ categoryModel }: { categoryModel: CategoryModelInterface }) {
+    super({ categoryModel })
     this.categoryModel = categoryModel
   }
 

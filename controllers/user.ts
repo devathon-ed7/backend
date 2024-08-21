@@ -1,20 +1,19 @@
 import { NextFunction, Request, Response } from "express"
-import {
-  CreateUserType,
-  UpdateUserType,
-  UserDocument,
-  UserModelInterface
-} from "../models/mariadb/user"
-import {
-  CreateUserDetailsType,
-  DetailsModelInterface,
-  UserDetailsDocument
-} from "../models/mariadb/details"
 import { hashPassword } from "../utils/password-utils"
 import boom from "@hapi/boom"
 import { omitFields } from "../utils/middleware"
 import { getFileUrl } from "../utils/imageUrl"
 import { numberRequest, stringRequest } from "../types"
+import { validateEntityId } from "../utils/validationUtils"
+import {
+  CreateUserDetailsType,
+  CreateUserType,
+  DetailsModelInterface,
+  UpdateUserType,
+  UserDetailsDocument,
+  UserDocument,
+  UserModelInterface
+} from "../interfaces"
 
 interface userDetailsRequest {
   id: numberRequest
@@ -42,12 +41,6 @@ export class UserController {
     this.detailsModel = detailsModel
   }
 
-  /**
-   *  Get all the users
-   * @param request
-   * @param response
-   * @param next
-   */
   getAll = async (
     request: Request,
     response: Response,
@@ -61,20 +54,13 @@ export class UserController {
     }
   }
 
-  /**
-   *  Get the user by ID
-   * @param request
-   * @param response
-   * @param next
-   * @returns
-   */
   getById = async (
-    request: Request,
-    response: Response,
+    req: Request,
+    res: Response,
     next: NextFunction
   ): Promise<void> => {
     try {
-      const userId = parseInt(request.params.id, 10)
+      const userId = parseInt(req.params.id, 10)
 
       if (isNaN(userId)) {
         throw boom.unauthorized("Invalid user ID")
@@ -88,29 +74,23 @@ export class UserController {
       }
 
       const userWithoutPassword = omitFields(user, ["password"])
-      response.status(200).json({ user: userWithoutPassword })
+      res.status(200).json({ user: userWithoutPassword })
     } catch (error) {
       next(error)
     }
   }
 
-  /**
-   *  Create the user
-   * @param request
-   * @param response
-   * @param next
-   */
   create = async (
-    request: Request,
-    response: Response,
+    req: Request,
+    res: Response,
     next: NextFunction
   ): Promise<void> => {
     try {
       // Get the user details from the request body
-      const { user } = request.body
+      const { user } = req.body
       // Get the file from the request
-      const file = request.file
-      const profileFilename = file ? getFileUrl(request, file) : null
+      const file = req.file
+      const profileFilename = file ? getFileUrl(req, file) : null
       // Create the user
       const createdUser = await this.createUser(user)
       // Create the user details
@@ -123,7 +103,7 @@ export class UserController {
       // Omit the password from the response
       const userResponse = omitFields(createdUser, ["password"])
 
-      response.status(201).json({
+      res.status(201).json({
         message: "User created successfully",
         newUser: userResponse
       })
@@ -133,12 +113,12 @@ export class UserController {
   }
 
   delete = async (
-    request: Request,
-    response: Response,
+    req: Request,
+    res: Response,
     next: NextFunction
   ): Promise<void> => {
     try {
-      const userId = parseInt(request.params.id, 10)
+      const userId = parseInt(req.params.id, 10)
 
       if (isNaN(userId)) {
         throw boom.unauthorized("Invalid user ID")
@@ -152,7 +132,7 @@ export class UserController {
       }
 
       await this.userModel.delete(userId)
-      response.status(204).json({ message: "User deleted successfully" })
+      res.status(204).json({ message: "User deleted successfully" })
     } catch (error) {
       next(error)
     }
@@ -165,15 +145,15 @@ export class UserController {
    * @param next
    */
   update = async (
-    request: Request,
-    response: Response,
+    req: Request,
+    res: Response,
     next: NextFunction
   ): Promise<void> => {
     try {
-      const userId = parseInt(request.params.id, 10)
-      const { user } = request.body
-      const file = request.file
-      const profileFilename = file ? getFileUrl(request, file) : null
+      const userId = parseInt(req.params.id, 10)
+      const { user } = req.body
+      const file = req.file
+      const profileFilename = file ? getFileUrl(req, file) : null
 
       const db_user = await this.validateUserId(userId)
       await this.checkUsernameConflict(user.username, userId)
@@ -188,7 +168,7 @@ export class UserController {
         )
       }
 
-      response
+      res
         .status(200)
         .json({ message: "User updated successfully", user: updatedUser })
     } catch (error) {
@@ -302,11 +282,7 @@ export class UserController {
    * @param userId
    */
   private async validateUserId(userId: number): Promise<UserDocument> {
-    const db_user = await this.userModel.getById(userId)
-    if (!db_user) {
-      throw boom.notFound("User not found")
-    }
-    return db_user
+    return validateEntityId(this.userModel, userId, "User")
   }
 
   /**

@@ -70,49 +70,34 @@ export default class RolePermissionModel {
     const compoundKey = RolePermissionModel.getCompoundKey(id)
     const result = await prisma.rolePermission.upsert({
       where: compoundKey,
-      update:{
-        active:data.active
+      update: {
+        active: data.active
       },
       create: {
-      role_id: data.role_id,
-      permission_id: data.permission_id,
-      active: data.active}
+        role_id: data.role_id,
+        permission_id: data.permission_id,
+        active: data.active
+      }
     })
     return result
   }
 
   /**
    * Get all permissions for a role
-   * @param role_Id
+   * @param role_id
    * @returns
    */
   static getPermissionsForRole = async (role_id: number) => {
-    const result = await prisma.rolePermission.findMany({
-      where: {
-        role_id
-      },
-      include: {
-        permission: true
-      }
-    })
-    return result
+    return await this.getRolePermissions({ role_id }, { permission: true })
   }
 
   /**
    * Get all roles for a permission
-   * @param permission_Id
+   * @param permission_id
    * @returns
    */
   static getRolesForPermission = async (permission_id: number) => {
-    const result = await prisma.rolePermission.findMany({
-      where: {
-        permission_id
-      },
-      include: {
-        role: true
-      }
-    })
-    return result
+    return await this.getRolePermissions({ permission_id }, { role: true })
   }
 
   /**
@@ -156,5 +141,21 @@ export default class RolePermissionModel {
     })
 
     return rolePermission
+  }
+
+  /**
+   * Generic function to get roles or permissions by ID
+   * @param where - Search condition (object with corresponding ID)
+   * @param include - Object that defines the relationships to include
+   */
+  private static async getRolePermissions(
+    where: Record<string, number>,
+    include: Record<string, boolean>
+  ) {
+    const result = await prisma.rolePermission.findMany({
+      where,
+      include
+    })
+    return result
   }
 }

@@ -4,16 +4,6 @@ export type UpdateCategoryType = Partial<Category>
 
 const prisma = new PrismaClient()
 
-export interface CategoryModelInteface {
-  getById: (id: number) => Promise<Category | null>
-  getAll: () => Promise<Category[]>
-  create: (data: CreateCategoryType) => Promise<Category>
-  delete: (id: number) => Promise<Category>
-  update: (data: UpdateCategoryType) => Promise<Category>
-  getByName: (name: string) => Promise<Category[]>
-  getByDescription: (description: string) => Promise<Category[]>
-}
-
 export default class CategoryModel {
   static getById = async (id: number) => {
     const category = await prisma.category.findUnique({
@@ -51,25 +41,20 @@ export default class CategoryModel {
     return category
   }
   static getByName = async (name: string) => {
-    const category = await prisma.category.findMany({
-      where: {
-        name: {
-          contains: name
-        }
-      }
-    })
-
-    return category
+    return await this.findCategories("name", name)
   }
+
   static getByDescription = async (description: string) => {
-    const category = await prisma.category.findMany({
+    return await this.findCategories("description", description)
+  }
+
+  private static async findCategories(field: string, value: string) {
+    return await prisma.category.findMany({
       where: {
-        description: {
-          contains: description
+        [field]: {
+          contains: value
         }
       }
     })
-
-    return category
   }
 }

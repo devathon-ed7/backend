@@ -1,11 +1,11 @@
-import { UserModelInterface } from "../models/mariadb/user"
 import { Request, Response, NextFunction } from "express"
 import { CustomError } from "../utils/customError"
 import {
   DetailsModelInterface,
   CreateUserDetailsType,
-  UpdateUserDetailsType
-} from "../models/mariadb/details"
+  UpdateUserDetailsType,
+  UserModelInterface
+} from "../interfaces"
 import { RoleModelInterface } from "../models/mariadb/roles"
 import { getFileUrl } from "../utils/imageUrl"
 

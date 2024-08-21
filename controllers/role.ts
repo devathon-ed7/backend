@@ -14,25 +14,25 @@ export class RoleController {
   }
 
   getAll = async (
-    _request: Request,
-    response: Response,
+    _req: Request,
+    res: Response,
     next: NextFunction
   ): Promise<void> => {
     try {
       const roles = await this.roleModel.getAll()
-      response.status(200).json(roles)
+      res.status(200).json(roles)
     } catch (error) {
       next(error)
     }
   }
 
   getById = async (
-    request: Request,
-    response: Response,
+    req: Request,
+    res: Response,
     next: NextFunction
   ): Promise<void> => {
     try {
-      const roleId = parseInt(request.params.id, 10)
+      const roleId = parseInt(req.params.id, 10)
       if (isNaN(roleId)) {
         throw boom.unauthorized("Invalid role ID")
         return
@@ -42,19 +42,19 @@ export class RoleController {
         throw boom.notFound("Role not found")
         return
       }
-      response.status(200).json(role)
+      res.status(200).json(role)
     } catch (error) {
       next(error)
     }
   }
 
   create = async (
-    request: Request,
-    response: Response,
+    req: Request,
+    res: Response,
     next: NextFunction
   ): Promise<void> => {
     try {
-      const { name, description } = request.body
+      const { name, description } = req.body
 
       if (!name || !description) {
         throw boom.badRequest("Missing required fields")
@@ -64,7 +64,7 @@ export class RoleController {
       const newRole: CreateRoleType = { name, description }
       const createdRole = await this.roleModel.create(newRole)
 
-      response
+      res
         .status(201)
         .json({ message: "Role created successfully", role: createdRole })
     } catch (error) {
@@ -73,12 +73,12 @@ export class RoleController {
   }
 
   delete = async (
-    request: Request,
-    response: Response,
+    req: Request,
+    res: Response,
     next: NextFunction
   ): Promise<void> => {
     try {
-      const roleId = parseInt(request.params.id, 10)
+      const roleId = parseInt(req.params.id, 10)
       if (isNaN(roleId)) {
         throw boom.unauthorized("Invalid role ID")
         return
@@ -89,20 +89,20 @@ export class RoleController {
         return
       }
       await this.roleModel.delete(roleId)
-      response.status(204).json({ message: "Role deleted successfully" })
+      res.status(204).json({ message: "Role deleted successfully" })
     } catch (error) {
       next(error)
     }
   }
 
   update = async (
-    request: Request,
-    response: Response,
+    req: Request,
+    res: Response,
     next: NextFunction
   ): Promise<void> => {
     try {
-      const roleId = parseInt(request.params.id, 10)
-      const { name, description } = request.body
+      const roleId = parseInt(req.params.id, 10)
+      const { name, description } = req.body
 
       if (isNaN(roleId)) {
         throw boom.unauthorized("Invalid role ID")
@@ -125,7 +125,7 @@ export class RoleController {
 
       const updated = await this.roleModel.update(updatedRole)
 
-      response.status(204).json(updated)
+      res.status(204).json(updated)
     } catch (error) {
       next(error)
     }

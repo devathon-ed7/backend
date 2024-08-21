@@ -1,23 +1,21 @@
-const info= (...params: any[]) => {
-    if (process.env.NODE_ENV !== 'test'){
-        console.log(...params)
-    }
-}
-
-const error = (...params: any[]) => {
-    if (process.env.NODE_ENV !== 'test') {
-        console.error(...params)
-    }
-}
-
 interface Logger {
-    info: (...params: any[]) => void;
-    error: (...params: any[]) => void;
+  info: (...params: unknown[]) => void
+  error: (...params: unknown[]) => void
+}
+
+const log = (level: "info" | "error", ...params: unknown[]) => {
+  if (process.env.NODE_ENV !== "test") {
+    if (level === "info") {
+      console.log(...params)
+    } else if (level === "error") {
+      console.error(...params)
+    }
+  }
 }
 
 const logger: Logger = {
-    info: info,
-    error: error
-};
+  info: (...params: unknown[]) => log("info", ...params),
+  error: (...params: unknown[]) => log("error", ...params)
+}
 
-export default logger;
+export default logger

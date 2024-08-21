@@ -1,56 +1,53 @@
 import { NextFunction, Request, Response } from "express"
 import {
   CreateSupplierType,
-  UpdateSupplierType,
-  SupplierModelInterface
-} from "../models/mariadb/supplier"
-import { CustomError } from "../utils/customError"
-import { error } from "console"
+  SupplierModelInterface,
+  UpdateSupplierType
+} from "../interfaces"
+import { BaseController } from "./base"
+import boom from "@hapi/boom"
 
-export class SupplierController {
-  private supplierModel: SupplierModelInterface
+export class SupplierController extends BaseController {
+  protected supplierModel: SupplierModelInterface
   constructor({ supplierModel }: { supplierModel: SupplierModelInterface }) {
+    super({ supplierModel })
     this.supplierModel = supplierModel
   }
 
-  getAll = async (request: Request, response: Response, next: NextFunction) => {
+  getAll = async (_req: Request, res: Response, next: NextFunction) => {
     try {
       const suppliers = await this.supplierModel.getAll()
-      response.status(200).json(suppliers)
+      res.status(200).json(suppliers)
     } catch (error) {
       next(error)
     }
   }
 
-  getById = async (
-    request: Request,
-    response: Response,
-    next: NextFunction
-  ) => {
+  getById = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const id = parseInt(request.params.id, 10)
+      const id = parseInt(req.params.id, 10)
 
       if (isNaN(id)) {
-        throw CustomError.Unauthorized("Invalid supplier ID")
+        throw boom.unauthorized("Invalid supplier ID")
       }
 
       const supplier = await this.supplierModel.getById(id)
 
       if (!supplier) {
-        throw CustomError.NotFound("Supplier not found")
+        throw boom.notFound("Supplier not found")
       }
-      response.status(200).json(supplier)
+      res.status(200).json(supplier)
     } catch (error) {
       next(error)
     }
   }
 
-  create = async (request: Request, response: Response, next: NextFunction) => {
+  create = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const { name, location, contact } = request.body
+      const { name, location, contact } = req.body
 
       if (!name || !location || !contact) {
-        throw CustomError.BadRequest("All data is required")
+        throw boom.badRequest("All data is required")
       }
 
       const newSupplier: CreateSupplierType = {
@@ -61,7 +58,7 @@ export class SupplierController {
 
       const supplier = await this.supplierModel.create(newSupplier)
 
-      response
+      res
         .status(201)
         .json({ message: "Supplier created successfully", supplier: supplier })
     } catch (erorr) {
@@ -69,20 +66,20 @@ export class SupplierController {
     }
   }
 
-  update = async (request: Request, response: Response, next: NextFunction) => {
+  update = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const id = parseInt(request.params.id)
+      const id = parseInt(req.params.id)
 
       if (isNaN(id)) {
-        throw CustomError.Unauthorized("Invalid supplier ID")
+        throw boom.unauthorized("Invalid supplier ID")
       }
 
       const supplier = await this.supplierModel.getById(id)
       if (!supplier) {
-        throw CustomError.NotFound("Supplier not found")
+        throw boom.notFound("Supplier not found")
       }
 
-      const { name, location, contact }: UpdateSupplierType = request.body
+      const { name, location, contact }: UpdateSupplierType = req.body
       const data: UpdateSupplierType = {
         id: id,
         name,
@@ -92,100 +89,88 @@ export class SupplierController {
 
       const updatedSupplier = await this.supplierModel.update(data)
 
-      response.status(204).json({ supplier: updatedSupplier })
+      res.status(204).json({ supplier: updatedSupplier })
     } catch (error) {
       next(error)
     }
   }
 
-  delete = async (request: Request, response: Response, next: NextFunction) => {
+  delete = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const id = parseInt(request.params.id)
+      const id = parseInt(req.params.id)
 
       if (isNaN(id)) {
-        throw CustomError.Unauthorized("Invalid supplier ID")
+        throw boom.unauthorized("Invalid supplier ID")
       }
 
       const supplier = await this.supplierModel.getById(id)
       if (!supplier) {
-        throw CustomError.NotFound("Supplier not found")
+        throw boom.notFound("Supplier not found")
       }
 
       await this.supplierModel.delete(id)
-      response.status(204).json({ message: "Supplier deleted successfully" })
+      res.status(204).json({ message: "Supplier deleted successfully" })
     } catch (error) {
       next(error)
     }
   }
 
-  getByName = async (
-    request: Request,
-    response: Response,
-    next: NextFunction
-  ) => {
+  getByName = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const name: string = request.params.name
+      const name: string = req.params.name
 
       if (!name) {
-        throw CustomError.BadRequest("All data is required")
+        throw boom.badRequest("All data is required")
       }
 
       const supplier = await this.supplierModel.getByName(name)
 
       if (!supplier) {
-        throw CustomError.NotFound("Supplier not found")
+        throw boom.notFound("Supplier not found")
       }
 
-      response.status(200).json(supplier)
-    } catch {
+      res.status(200).json(supplier)
+    } catch (error) {
       next(error)
     }
   }
 
-  getByLocation = async (
-    request: Request,
-    response: Response,
-    next: NextFunction
-  ) => {
+  getByLocation = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const location: string = request.params.location
+      const location: string = req.params.location
 
       if (!location) {
-        throw CustomError.BadRequest("All data is required")
+        throw boom.badRequest("All data is required")
       }
 
       const supplier = await this.supplierModel.getByLocation(location)
 
       if (!supplier) {
-        throw CustomError.NotFound("Supplier not found")
+        throw boom.notFound("Supplier not found")
       }
 
-      response.status(200).json(supplier)
-    } catch {
+      res.status(200).json(supplier)
+    } catch (error) {
       next(error)
     }
   }
 
-  getByContact = async (
-    request: Request,
-    response: Response,
-    next: NextFunction
-  ) => {
+  getByContact = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const contact: string = request.params.contact
+      const contact: string = req.params.contact
 
       if (!contact) {
-        throw CustomError.BadRequest("All data is required")
+        throw boom.badRequest("All data is required")
       }
 
       const supplier = await this.supplierModel.getByContact(contact)
 
       if (!supplier) {
-        throw CustomError.NotFound("Supplier not found")
+        throw boom.notFound("Supplier not found")
       }
 
-      response.status(200).json(supplier)
-    } catch {
+      res.status(200).json(supplier)
+    } catch (error) {
       next(error)
     }
   }

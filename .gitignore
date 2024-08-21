@@ -272,3 +272,4 @@ $RECYCLE.BIN/
 yarn.lock
 .http
 http_test/
+pnpm-lock.yaml

@@ -1,25 +1,5 @@
-import { PrismaClient, User_details } from "@prisma/client"
-
-export interface UserDetailsDocument extends User_details {}
-export type CreateUserDetailsType = Pick<
-  User_details,
-  | "description"
-  | "notes"
-  | "role_id"
-  | "email"
-  | "name"
-  | "user_account_id"
-  | "profile_filename"
->
-export type UpdateUserDetailsType = Partial<User_details>
-
-export interface DetailsModelInterface {
-  getAll: () => Promise<User_details[]>
-  getById: (id: number) => Promise<User_details | null>
-  create: (data: CreateUserDetailsType) => Promise<User_details>
-  update: (data: UpdateUserDetailsType) => Promise<User_details>
-  delete: (id: number) => Promise<User_details>
-}
+import { PrismaClient } from "@prisma/client"
+import { CreateUserDetailsType, UpdateUserDetailsType } from "../../interfaces"
 
 const prisma = new PrismaClient()
 export default class DetailsModel {
