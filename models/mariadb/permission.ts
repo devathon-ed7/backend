@@ -1,16 +1,14 @@
 import { PrismaClient, Permissions } from "@prisma/client"
 
 export interface PermissionDocument extends Permissions {}
-export type CreatePermissionType = Pick<Permissions, "name" >
+export type CreatePermissionType = Pick<Permissions, "name">
 export type UpdatePermissionType = Partial<Permissions>
 
 export interface PermissionModelInterface {
   getAll: () => Promise<Partial<PermissionDocument>[]>
   getById: (id: number) => Promise<Partial<PermissionDocument> | null>
   create: (data: CreatePermissionType) => Promise<PermissionDocument>
-  update: (
-    data: UpdatePermissionType
-  ) => Promise<Partial<PermissionDocument>>
+  update: (data: UpdatePermissionType) => Promise<Partial<PermissionDocument>>
   delete: (id: number) => Promise<Partial<PermissionDocument>>
 }
 
@@ -31,12 +29,10 @@ export default class PermissionModel {
     return permission
   }
 
-  static create = async (permission: CreatePermissionType) => {
-    const createdPermission = await prisma.permissions.create({
+  static create = async (permission: CreatePermissionType) =>
+    await prisma.permissions.create({
       data: permission
     })
-    return createdPermission
-  }
 
   static update = async (permission: UpdatePermissionType) => {
     const updatedPermission = await prisma.permissions.update({

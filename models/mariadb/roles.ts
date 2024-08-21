@@ -25,12 +25,10 @@ export default class RoleModel {
     return role
   }
 
-  static create = async (role: CreateRoleType) => {
-    const createdRole = await prisma.roles.create({
+  static create = async (role: CreateRoleType) =>
+    await prisma.roles.create({
       data: role
     })
-    return createdRole
-  }
 
   static update = async (role: UpdateRoleType) => {
     const updatedRole = await prisma.roles.update({

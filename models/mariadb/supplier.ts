@@ -25,12 +25,11 @@ export default class SupplierModel {
   static getByContact = async (contact: string) => {
     return await this.findSuppliers("contact", contact)
   }
-  static create = async (data: CreateSupplierType) => {
-    const createdSupplier = await prisma.supplier.create({
+  static create = async (data: CreateSupplierType) =>
+    await prisma.supplier.create({
       data
     })
-    return createdSupplier
-  }
+
   static update = async (data: UpdateSupplierType) => {
     const updatedSupplier = await prisma.supplier.update({
       data,

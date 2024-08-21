@@ -25,12 +25,10 @@ export default class UserModel {
     return user || null
   }
 
-  static create = async (user: CreateUserType) => {
-    const createdUser = await prisma.user_accounts.create({
+  static create = async (user: CreateUserType) =>
+    await prisma.user_accounts.create({
       data: user
     })
-    return createdUser
-  }
 
   static update = async (user: UpdateUserType) => {
     const updatedUser = await prisma.user_accounts.update({
