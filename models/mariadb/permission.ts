@@ -1,6 +1,6 @@
 import { PrismaClient } from "@prisma/client"
 import { CreatePermissionType, UpdatePermissionType } from "../../interfaces"
-import { findUnique } from "../../utils/modelUtils"
+import { findUnique, updateById } from "../../utils/modelUtils"
 
 const prisma = new PrismaClient()
 
@@ -16,12 +16,7 @@ export default class PermissionModel {
     })
 
   static update = async (permission: UpdatePermissionType) =>
-    await prisma.permissions.update({
-      data: permission,
-      where: {
-        id: permission.id
-      }
-    })
+    await updateById(prisma.permissions, permission, permission.id as number)
 
   static delete = async (id: number) =>
     await prisma.permissions.delete({

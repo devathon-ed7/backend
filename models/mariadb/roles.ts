@@ -1,6 +1,6 @@
 import { PrismaClient } from "@prisma/client"
 import { CreateRoleType, UpdateRoleType } from "../../interfaces/roles"
-import { findUnique } from "../../utils/modelUtils"
+import { findUnique, updateById } from "../../utils/modelUtils"
 
 const prisma = new PrismaClient()
 
@@ -15,12 +15,7 @@ export default class RoleModel {
     })
 
   static update = async (role: UpdateRoleType) =>
-    await prisma.roles.update({
-      data: role,
-      where: {
-        id: role.id
-      }
-    })
+    await updateById(prisma.roles, role, role.id as number)
 
   static delete = async (id: number) =>
     await prisma.roles.delete({

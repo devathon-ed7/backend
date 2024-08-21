@@ -1,6 +1,6 @@
 import { PrismaClient } from "@prisma/client"
 import { CreateSupplierType, UpdateSupplierType } from "../../interfaces"
-import { findMany, findUnique } from "../../utils/modelUtils"
+import { findMany, findUnique, updateById } from "../../utils/modelUtils"
 
 const prisma = new PrismaClient()
 
@@ -25,12 +25,7 @@ export default class SupplierModel {
     })
 
   static update = async (data: UpdateSupplierType) =>
-    await prisma.supplier.update({
-      data,
-      where: {
-        id: data.id
-      }
-    })
+    await updateById(prisma.supplier, data, data.id as number)
 
   static delete = async (id: number) =>
     await prisma.supplier.delete({

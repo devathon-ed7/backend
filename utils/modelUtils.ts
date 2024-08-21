@@ -57,3 +57,16 @@ export const findUnique = async <T, U>(
     include: include || undefined
   })
 }
+
+export const updateById = async <T, U>(
+  model: {
+    update: (args: { data: T; where: { id: number } }) => Promise<U>
+  },
+  data: T,
+  id: number
+): Promise<U> => {
+  return await model.update({
+    data,
+    where: { id }
+  })
+}

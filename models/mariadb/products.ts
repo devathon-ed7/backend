@@ -1,49 +1,26 @@
-import { PrismaClient, Product } from "@prisma/client"
-
-export interface ProductDocument extends Product {}
-export type CreateProductType = Pick<
-  Product,
-  | "name"
-  | "description"
-  | "stock"
-  | "price"
-  | "notes"
-  | "category_id"
-  | "supplier_id"
-  | "images"
->
-export type UpdateProductType = Partial<Product>
-
-export interface ProductModelInterface {
-  getAll: () => Promise<ProductDocument[]>
-  getById: (id: number) => Promise<ProductDocument | null>
-  getByIdWithRelations: (id: number) => Promise<ProductDocument | null>
-  getAllWithRelations: () => Promise<ProductDocument[] | null>
-  create: (data: CreateProductType) => Promise<ProductDocument>
-  update: (data: UpdateProductType) => Promise<ProductDocument>
-  delete: (id: number) => Promise<ProductDocument>
-  getByPage: ({
-    skip,
-    take
-  }: {
-    skip: number
-    take: number
-  }) => Promise<ProductDocument[]>
-}
+import { PrismaClient } from "@prisma/client"
+import { CreateProductType, UpdateProductType } from "../../interfaces"
+import { findUnique, updateById } from "../../utils/modelUtils"
 
 const prisma = new PrismaClient()
 export default class ProductModel {
   static getAll = async () => await prisma.product.findMany()
+
   static getById = async (id: number) =>
-    await prisma.product.findUnique({ where: { id } })
+    await findUnique(prisma.product, { id })
+
   static delete = async (id: number) =>
     await prisma.product.delete({ where: { id } })
+
   static create = async (data: CreateProductType) =>
     await prisma.product.create({ data })
+
   static update = async (data: UpdateProductType) =>
-    await prisma.product.update({ where: { id: data.id }, data })
+    await updateById(prisma.product, data, data.id as number)
+
   static getByPage = async ({ skip, take }: { skip: number; take: number }) =>
     await prisma.product.findMany({ skip, take })
+
   static getAllWithRelations = async () =>
     await prisma.product.findMany({
       include: {
@@ -51,12 +28,7 @@ export default class ProductModel {
         supplier: true
       }
     })
+
   static getByIdWithRelations = async (id: number) =>
-    await prisma.product.findUnique({
-      where: { id },
-      include: {
-        supplier: true,
-        category: true
-      }
-    })
+    await findUnique(prisma.product, { id }, { category: true, supplier: true })
 }

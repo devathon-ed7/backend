@@ -1,5 +1,5 @@
 import { PrismaClient } from "@prisma/client"
-import { findMany, findUnique } from "../../utils/modelUtils"
+import { findMany, findUnique, updateById } from "../../utils/modelUtils"
 import { CreateCategoryType, UpdateCategoryType } from "../../interfaces"
 
 const prisma = new PrismaClient()
@@ -18,12 +18,7 @@ export default class CategoryModel {
     })
 
   static update = async (data: UpdateCategoryType) =>
-    await prisma.category.update({
-      data,
-      where: {
-        id: data.id
-      }
-    })
+    await updateById(prisma.category, data, data.id as number)
 
   static getByName = async (name: string) =>
     await findMany(prisma.category, "name", name)

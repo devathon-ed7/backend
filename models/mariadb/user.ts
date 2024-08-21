@@ -1,7 +1,7 @@
 import { PrismaClient } from "@prisma/client"
 import { omitFields } from "../../utils/middleware"
 import { CreateUserType, UpdateUserType } from "../../interfaces"
-import { findUnique } from "../../utils/modelUtils"
+import { findUnique, updateById } from "../../utils/modelUtils"
 
 const prisma = new PrismaClient()
 export default class UserModel {
@@ -33,15 +33,9 @@ export default class UserModel {
       data: user
     })
 
-  static update = async (user: UpdateUserType) => {
-    const updatedUser = await prisma.user_accounts.update({
-      data: user,
-      where: {
-        id: user.id
-      }
-    })
-    return updatedUser
-  }
+  static update = async (user: UpdateUserType) =>
+    await updateById(prisma.user_accounts, user, user.id as number)
+
   static delete = async (id: number) => {
     const deletedUser = await prisma.user_accounts.delete({
       where: {
