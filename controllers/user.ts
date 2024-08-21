@@ -4,7 +4,7 @@ import boom from "@hapi/boom"
 import { omitFields } from "../utils/middleware"
 import { getFileUrl } from "../utils/imageUrl"
 import { numberRequest, stringRequest } from "../types"
-import { validateEntityId } from "../utils/validationUtils"
+import { checkIfExists } from "../utils/modelUtils"
 import {
   CreateUserDetailsType,
   CreateUserType,
@@ -282,7 +282,7 @@ export class UserController {
    * @param userId
    */
   private async validateUserId(userId: number): Promise<UserDocument> {
-    return validateEntityId(this.userModel, userId, "User")
+    return checkIfExists(this.userModel, userId, "User")
   }
 
   /**

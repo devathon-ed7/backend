@@ -41,3 +41,19 @@ export const checkIfExists = async <T>(
   }
   return entity
 }
+
+export const findUnique = async <T, U>(
+  model: {
+    findUnique: (args: {
+      where: U
+      include?: Record<string, unknown>
+    }) => Promise<T | null>
+  },
+  where: U,
+  include?: Record<string, unknown>
+): Promise<T | null> => {
+  return await model.findUnique({
+    where,
+    include: include || undefined
+  })
+}
