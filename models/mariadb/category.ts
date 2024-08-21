@@ -32,8 +32,9 @@ export default class CategoryModel {
       }
     })
 
-  static getByName = async (name: string) => await findMany("name", name)
+  static getByName = async (name: string) =>
+    await findMany(prisma.category, "name", name)
 
   static getByDescription = async (description: string) =>
-    await findMany("description", description)
+    await findMany(prisma.category, "description", description)
 }

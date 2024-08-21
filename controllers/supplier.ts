@@ -4,13 +4,11 @@ import {
   SupplierModelInterface,
   UpdateSupplierType
 } from "../interfaces"
-import { BaseController } from "./base"
 import boom from "@hapi/boom"
 
-export class SupplierController extends BaseController {
-  protected supplierModel: SupplierModelInterface
+export class SupplierController {
+  private supplierModel: SupplierModelInterface
   constructor({ supplierModel }: { supplierModel: SupplierModelInterface }) {
-    super({ supplierModel })
     this.supplierModel = supplierModel
   }
 

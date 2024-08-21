@@ -8,7 +8,7 @@ import { Request, Response, NextFunction } from "express"
 import { CustomError } from "../utils/customError"
 import boom from "@hapi/boom"
 import { getFilesUrl } from "../utils/imageUrl"
-import { validateEntityId } from "../utils/validationUtils"
+import { checkIfExists } from "../utils/modelUtils"
 import { CategoryModelInterface, SupplierModelInterface } from "../interfaces"
 
 interface productRequest {
@@ -239,7 +239,7 @@ export class ProductController {
   }
 
   private validateProductId = async (id: number): Promise<ProductDocument> => {
-    return validateEntityId(this.productModel, id, "Product")
+    return checkIfExists(this.productModel, id, "Product")
   }
 
   /**
@@ -296,7 +296,7 @@ export class ProductController {
    * @param category_id
    */
   private checkIfCategoryExists = async (category_id: number) => {
-    await this.checkIfExists(this.categoryModel, category_id, "Category")
+    await checkIfExists(this.categoryModel, category_id, "Category")
   }
 
   /**
@@ -304,23 +304,6 @@ export class ProductController {
    * @param supplier_id
    */
   private checkIfSupplierExists = async (supplier_id: number) => {
-    await this.checkIfExists(this.supplierModel, supplier_id, "Supplier")
-  }
-
-  /**
-   * Check if a given entity exists
-   * @param model - The model to check against
-   * @param id - The ID of the entity
-   * @param type - A string representing the type of entity (for error messages)
-   */
-  private async checkIfExists<T>(
-    model: { getById: (id: number) => Promise<T | null> },
-    id: number,
-    type: string
-  ) {
-    const entity = await model.getById(id)
-    if (!entity) {
-      throw boom.notFound(`${type} id not found`)
-    }
+    await checkIfExists(this.supplierModel, supplier_id, "Supplier")
   }
 }
