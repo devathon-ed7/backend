@@ -5,7 +5,11 @@ import {
   UpdateSupplierType
 } from "../interfaces"
 import boom from "@hapi/boom"
-import { deleteEntity } from "../utils/controllerUtils"
+import {
+  deleteEntity,
+  getAllEntities,
+  validateParam
+} from "../utils/controllerUtils"
 
 export class SupplierController {
   private supplierModel: SupplierModelInterface
@@ -13,29 +17,18 @@ export class SupplierController {
     this.supplierModel = supplierModel
   }
 
-  getAll = async (_req: Request, res: Response, next: NextFunction) => {
-    try {
-      const suppliers = await this.supplierModel.getAll()
-      res.status(200).json(suppliers)
-    } catch (error) {
-      next(error)
-    }
-  }
+  getAll = async (_req: Request, res: Response, next: NextFunction) =>
+    await getAllEntities(_req, res, next, this.supplierModel, "supplier")
 
   getById = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const id = parseInt(req.params.id, 10)
-
-      if (isNaN(id)) {
-        throw boom.unauthorized("Invalid supplier ID")
-      }
-
-      const supplier = await this.supplierModel.getById(id)
+      const id = validateParam(req, "id", "number")
+      const supplier = await this.supplierModel.getById(id as number)
 
       if (!supplier) {
         throw boom.notFound("Supplier not found")
       }
-      res.status(200).json(supplier)
+      res.status(200).json({ supplier: supplier })
     } catch (error) {
       next(error)
     }
@@ -99,13 +92,8 @@ export class SupplierController {
 
   getByName = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const name: string = req.params.name
-
-      if (!name) {
-        throw boom.badRequest("All data is required")
-      }
-
-      const supplier = await this.supplierModel.getByName(name)
+      const name = validateParam(req, "name")
+      const supplier = await this.supplierModel.getByName(name as string)
 
       if (!supplier) {
         throw boom.notFound("Supplier not found")
@@ -119,13 +107,11 @@ export class SupplierController {
 
   getByLocation = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const location: string = req.params.location
+      const location = validateParam(req, "location")
 
-      if (!location) {
-        throw boom.badRequest("All data is required")
-      }
-
-      const supplier = await this.supplierModel.getByLocation(location)
+      const supplier = await this.supplierModel.getByLocation(
+        location as string
+      )
 
       if (!supplier) {
         throw boom.notFound("Supplier not found")
@@ -139,13 +125,9 @@ export class SupplierController {
 
   getByContact = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const contact: string = req.params.contact
+      const contact = validateParam(req, "contact")
 
-      if (!contact) {
-        throw boom.badRequest("All data is required")
-      }
-
-      const supplier = await this.supplierModel.getByContact(contact)
+      const supplier = await this.supplierModel.getByContact(contact as string)
 
       if (!supplier) {
         throw boom.notFound("Supplier not found")

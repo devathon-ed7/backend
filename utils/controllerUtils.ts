@@ -43,3 +43,25 @@ export const getAllEntities = async (
     next(error)
   }
 }
+
+export const validateParam = (
+  req: Request,
+  paramName: string,
+  paramType: "string" | "number" = "string"
+) => {
+  const param = req.params[paramName]
+
+  if (paramType === "number") {
+    const id = parseInt(param)
+    if (isNaN(id)) {
+      throw boom.badRequest(`Invalid ${paramName} ID`)
+    }
+    return id
+  }
+
+  if (!param) {
+    throw boom.badRequest(`Missing ${paramName}`)
+  }
+
+  return param
+}
