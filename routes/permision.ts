@@ -2,7 +2,7 @@ import { Router } from "express"
 import { PermissionController } from "../controllers/permision"
 import { validatorHandler } from "../utils/validatorHandler"
 import permissionSchemas from "../schemas/permission"
-import { PermissionModelInterface } from "../models/mariadb/permission"
+import { PermissionModelInterface } from "../interfaces"
 
 interface CreatePermissionRouterProps {
   permissionModel: PermissionModelInterface
