@@ -1,6 +1,6 @@
 import { PrismaClient } from "@prisma/client"
 import { CreateTransactionType, UpdateTransactionType } from "../../interfaces"
-import { updateById } from "../../utils/modelUtils"
+import { findUnique, updateById } from "../../utils/modelUtils"
 
 const prisma = new PrismaClient()
 
@@ -8,6 +8,9 @@ export default class TransactionModel {
   static getAll = async () => {
     return await prisma.inventoryTransaction.findMany()
   }
+
+  static getById = async (id: number) =>
+    await findUnique(prisma.inventoryTransaction, { id })
 
   static getByProductId = async (id: number) => {
     return await prisma.inventoryTransaction.findMany({

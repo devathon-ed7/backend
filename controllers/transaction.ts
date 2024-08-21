@@ -1,7 +1,7 @@
 import { type NextFunction, type Request, type Response } from "express"
 import { CreateTransactionType, TransactionModelInterface } from "../interfaces"
 import boom from "@hapi/boom"
-import { deleteEntity } from "../utils/controllerUtils"
+import { deleteEntity, getAllEntities } from "../utils/controllerUtils"
 
 interface transactionRequest {
   product_id: number
@@ -22,15 +22,9 @@ export class TransactionController {
     this.transactionModel = transactionModel
   }
 
-  getAll = async (_req: Request, res: Response, next: NextFunction) => {
-    try {
-      const transactions = await this.transactionModel.getAll()
-      res.status(200).json({ transactions })
-    } catch (error) {
-      next(error)
-    }
-  }
-  //get transactions by product id
+  getAll = async (_req: Request, res: Response, next: NextFunction) =>
+    await getAllEntities(_req, res, next, this.transactionModel, "transactions")
+
   getByProudctId = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const id = this.extractProductId(req)

@@ -10,7 +10,7 @@ import { Request, Response, NextFunction } from "express"
 import boom from "@hapi/boom"
 import { getFilesUrl } from "../utils/imageUrl"
 import { checkIfExists } from "../utils/modelUtils"
-import { deleteEntity } from "../utils/controllerUtils"
+import { deleteEntity, getAllEntities } from "../utils/controllerUtils"
 
 interface productRequest {
   name: string
@@ -82,14 +82,8 @@ export class ProductController {
     }
   }
 
-  getAll = async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const products = await this.productModel.getAll()
-      res.status(200).json({ products: products })
-    } catch (error) {
-      next(error)
-    }
-  }
+  getAll = async (req: Request, res: Response, next: NextFunction) =>
+    await getAllEntities(req, res, next, this.productModel, "products")
 
   create = async (req: Request, res: Response, next: NextFunction) => {
     try {

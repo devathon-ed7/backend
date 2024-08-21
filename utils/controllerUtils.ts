@@ -28,3 +28,18 @@ export const deleteEntity = async (
     next(error)
   }
 }
+
+export const getAllEntities = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+  model: { getAll: () => Promise<unknown[]> },
+  entityName: string
+) => {
+  try {
+    const entities = await model.getAll()
+    res.status(200).json({ [entityName]: entities })
+  } catch (error) {
+    next(error)
+  }
+}

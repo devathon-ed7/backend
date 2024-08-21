@@ -8,6 +8,7 @@ import {
 } from "../interfaces"
 import { getFileUrl } from "../utils/imageUrl"
 import boom from "@hapi/boom"
+import { getAllEntities } from "../utils/controllerUtils"
 
 export class DetailsController {
   private detailsModel: DetailsModelInterface
@@ -47,14 +48,8 @@ export class DetailsController {
     }
   }
 
-  getAll = async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const details = await this.detailsModel.getAll()
-      res.status(200).json(details)
-    } catch (error) {
-      next(error)
-    }
-  }
+  getAll = async (req: Request, res: Response, next: NextFunction) =>
+    await getAllEntities(req, res, next, this.detailsModel, "details")
 
   create = async (req: Request, res: Response, next: NextFunction) => {
     try {

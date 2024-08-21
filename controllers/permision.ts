@@ -5,7 +5,7 @@ import {
   UpdatePermissionType
 } from "../interfaces"
 import boom from "@hapi/boom"
-import { deleteEntity } from "../utils/controllerUtils"
+import { deleteEntity, getAllEntities } from "../utils/controllerUtils"
 
 export class PermissionController {
   private permissionModel: PermissionModelInterface
@@ -16,18 +16,8 @@ export class PermissionController {
   }) {
     this.permissionModel = permissionModel
   }
-  getAll = async (
-    _req: Request,
-    res: Response,
-    next: NextFunction
-  ): Promise<void> => {
-    try {
-      const permissions = await this.permissionModel.getAll()
-      res.status(200).json(permissions)
-    } catch (error) {
-      next(error)
-    }
-  }
+  getAll = async (_req: Request, res: Response, next: NextFunction) =>
+    await getAllEntities(_req, res, next, this.permissionModel, "permissions")
 
   getById = async (
     req: Request,

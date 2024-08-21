@@ -14,7 +14,7 @@ import {
   UserDocument,
   UserModelInterface
 } from "../interfaces"
-import { deleteEntity } from "../utils/controllerUtils"
+import { deleteEntity, getAllEntities } from "../utils/controllerUtils"
 
 interface userDetailsRequest {
   id: numberRequest
@@ -42,18 +42,8 @@ export class UserController {
     this.detailsModel = detailsModel
   }
 
-  getAll = async (
-    request: Request,
-    response: Response,
-    next: NextFunction
-  ): Promise<void> => {
-    try {
-      const users = await this.userModel.getAll()
-      response.status(200).json({ users: users })
-    } catch (error) {
-      next(error)
-    }
-  }
+  getAll = async (request: Request, response: Response, next: NextFunction) =>
+    await getAllEntities(request, response, next, this.userModel, "users")
 
   getById = async (
     req: Request,

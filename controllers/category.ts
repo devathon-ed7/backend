@@ -3,7 +3,7 @@ import { CustomError } from "../utils/customError"
 import { CreateCategoryType, UpdateCategoryType } from "../interfaces"
 import { CategoryModelInterface } from "../interfaces"
 
-import { deleteEntity } from "../utils/controllerUtils"
+import { deleteEntity, getAllEntities } from "../utils/controllerUtils"
 
 export class CategoryController {
   private categoryModel: CategoryModelInterface
@@ -12,14 +12,8 @@ export class CategoryController {
     this.categoryModel = categoryModel
   }
 
-  getAll = async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const categories = await this.categoryModel.getAll()
-      res.status(200).json(categories)
-    } catch (error) {
-      next(error)
-    }
-  }
+  getAll = async (req: Request, res: Response, next: NextFunction) =>
+    await getAllEntities(req, res, next, this.categoryModel, "categories")
 
   getById = async (req: Request, res: Response, next: NextFunction) => {
     try {

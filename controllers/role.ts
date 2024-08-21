@@ -5,7 +5,7 @@ import {
   UpdateRoleType
 } from "../interfaces"
 import boom from "@hapi/boom"
-import { deleteEntity } from "../utils/controllerUtils"
+import { deleteEntity, getAllEntities } from "../utils/controllerUtils"
 
 export class RoleController {
   private roleModel: RoleModelInterface
@@ -14,18 +14,8 @@ export class RoleController {
     this.roleModel = roleModel
   }
 
-  getAll = async (
-    _req: Request,
-    res: Response,
-    next: NextFunction
-  ): Promise<void> => {
-    try {
-      const roles = await this.roleModel.getAll()
-      res.status(200).json(roles)
-    } catch (error) {
-      next(error)
-    }
-  }
+  getAll = async (_req: Request, res: Response, next: NextFunction) =>
+    await getAllEntities(_req, res, next, this.roleModel, "roles")
 
   getById = async (
     req: Request,
