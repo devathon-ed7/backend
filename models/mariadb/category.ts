@@ -5,11 +5,14 @@ import { CreateCategoryType, UpdateCategoryType } from "../../interfaces"
 const prisma = new PrismaClient()
 
 export default class CategoryModel {
+  static getAll = async () => await prisma.category.findMany()
+
   static getById = async (id: number) =>
     await findUnique(prisma.category, { id })
-  static getAll = async () => await prisma.category.findMany()
+
   static create = async (data: CreateCategoryType) =>
     await prisma.category.create({ data })
+
   static delete = async (id: number) =>
     await prisma.category.delete({
       where: {

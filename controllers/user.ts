@@ -14,6 +14,7 @@ import {
   UserDocument,
   UserModelInterface
 } from "../interfaces"
+import { deleteEntity } from "../utils/controllerUtils"
 
 interface userDetailsRequest {
   id: numberRequest
@@ -112,32 +113,8 @@ export class UserController {
     }
   }
 
-  delete = async (
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ): Promise<void> => {
-    try {
-      const userId = parseInt(req.params.id, 10)
-
-      if (isNaN(userId)) {
-        throw boom.unauthorized("Invalid user ID")
-        return
-      }
-
-      const deletedUser = await this.userModel.getById(userId)
-      if (!deletedUser) {
-        throw boom.notFound("User not found")
-        return
-      }
-
-      await this.userModel.delete(userId)
-      res.status(204).json({ message: "User deleted successfully" })
-    } catch (error) {
-      next(error)
-    }
-  }
-
+  delete = async (req: Request, res: Response, next: NextFunction) =>
+    deleteEntity(req, res, next, this.userModel, "user")
   /**
    *  Update the user
    * @param request

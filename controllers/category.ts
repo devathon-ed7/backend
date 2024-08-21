@@ -1,18 +1,14 @@
 import { NextFunction, Request, Response } from "express"
 import { CustomError } from "../utils/customError"
-import {
-  CreateCategoryType,
-  UpdateCategoryType
-} from "../models/mariadb/category"
+import { CreateCategoryType, UpdateCategoryType } from "../interfaces"
 import { CategoryModelInterface } from "../interfaces"
-import { BaseController } from "./base"
+
 import { deleteEntity } from "../utils/controllerUtils"
 
-export class CategoryController extends BaseController {
-  protected categoryModel: CategoryModelInterface
+export class CategoryController {
+  private categoryModel: CategoryModelInterface
 
   constructor({ categoryModel }: { categoryModel: CategoryModelInterface }) {
-    super({ categoryModel })
     this.categoryModel = categoryModel
   }
 
@@ -109,16 +105,8 @@ export class CategoryController extends BaseController {
     }
   }
 
-  delete = (req: Request, res: Response, next: NextFunction) => {
-    return deleteEntity(
-      req,
-      res,
-      next,
-      this.categoryModel.getById.bind(this.categoryModel),
-      this.categoryModel.delete.bind(this.categoryModel),
-      "category"
-    )
-  }
+  delete = (req: Request, res: Response, next: NextFunction) =>
+    deleteEntity(req, res, next, this.categoryModel, "category")
 
   update = async (req: Request, res: Response, next: NextFunction) => {
     try {

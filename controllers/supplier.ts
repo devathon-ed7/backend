@@ -5,6 +5,7 @@ import {
   UpdateSupplierType
 } from "../interfaces"
 import boom from "@hapi/boom"
+import { deleteEntity } from "../utils/controllerUtils"
 
 export class SupplierController {
   private supplierModel: SupplierModelInterface
@@ -93,25 +94,8 @@ export class SupplierController {
     }
   }
 
-  delete = async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const id = parseInt(req.params.id)
-
-      if (isNaN(id)) {
-        throw boom.unauthorized("Invalid supplier ID")
-      }
-
-      const supplier = await this.supplierModel.getById(id)
-      if (!supplier) {
-        throw boom.notFound("Supplier not found")
-      }
-
-      await this.supplierModel.delete(id)
-      res.status(204).json({ message: "Supplier deleted successfully" })
-    } catch (error) {
-      next(error)
-    }
-  }
+  delete = async (req: Request, res: Response, next: NextFunction) =>
+    deleteEntity(req, res, next, this.supplierModel, "supplier")
 
   getByName = async (req: Request, res: Response, next: NextFunction) => {
     try {

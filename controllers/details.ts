@@ -1,13 +1,13 @@
 import { Request, Response, NextFunction } from "express"
-import { CustomError } from "../utils/customError"
 import {
   DetailsModelInterface,
   CreateUserDetailsType,
   UpdateUserDetailsType,
-  UserModelInterface
+  UserModelInterface,
+  RoleModelInterface
 } from "../interfaces"
-import { RoleModelInterface } from "../models/mariadb/roles"
 import { getFileUrl } from "../utils/imageUrl"
+import boom from "@hapi/boom"
 
 export class DetailsController {
   private detailsModel: DetailsModelInterface
@@ -32,13 +32,13 @@ export class DetailsController {
     try {
       const id = parseInt(req.params.id)
       if (isNaN(id)) {
-        throw CustomError.Unauthorized("Invalid Detail Id")
+        throw boom.unauthorized("Invalid Detail Id")
       }
 
       const deatils = await this.detailsModel.getById(id)
 
       if (!deatils) {
-        throw CustomError.NotFound("Detail not found")
+        throw boom.notFound("Detail not found")
       }
 
       res.status(200).json(deatils)
@@ -70,18 +70,18 @@ export class DetailsController {
       const file = req.file
 
       if (!user_account_id) {
-        throw CustomError.BadRequest("user_account_id is required")
+        throw boom.badRequest("user_account_id is required")
       }
 
       const user_account = await this.userModel.getById(user_account_id)
 
       if (!user_account) {
-        throw CustomError.NotFound("User Account not found")
+        throw boom.notFound("User Account not found")
       }
 
       if (role_id != null) {
         if (!(await this.roleModel.getById(parseInt(`${role_id}`)))) {
-          throw CustomError.NotFound("Role not found")
+          throw boom.notFound("Role not found")
         }
       }
 
@@ -116,11 +116,11 @@ export class DetailsController {
       const file = req.file
 
       if (isNaN(id)) {
-        throw CustomError.BadRequest("Id is missing")
+        throw boom.badRequest("Id is missing")
       }
 
       if (!(await this.detailsModel.getById(id))) {
-        throw CustomError.NotFound("User Details not found")
+        throw boom.notFound("User Details not found")
       }
 
       const data = {
@@ -140,25 +140,4 @@ export class DetailsController {
       next(error)
     }
   }
-
-  // delete = async (req: Request, res: Response, next: NextFunction) => {
-  //   try {
-  //     const id = parseInt(req.params.id)
-
-  //     if (isNaN(id)) {
-  //       throw CustomError.BadRequest("Id is missing")
-  //     }
-
-  //     if (!(await this.detailsModel.getById(id))) {
-  //       throw CustomError.NotFound("User Details not found")
-  //     }
-
-  //     await this.userModel.delete(id)
-  //     res
-  //       .status(200)
-  //       .json({ message: "User Details deleted successfully" })
-  //   } catch (error) {
-  //     next(error)
-  //   }
-  // }
 }

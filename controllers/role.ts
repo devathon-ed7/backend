@@ -3,8 +3,9 @@ import {
   RoleModelInterface,
   CreateRoleType,
   UpdateRoleType
-} from "../models/mariadb/roles"
+} from "../interfaces"
 import boom from "@hapi/boom"
+import { deleteEntity } from "../utils/controllerUtils"
 
 export class RoleController {
   private roleModel: RoleModelInterface
@@ -72,28 +73,8 @@ export class RoleController {
     }
   }
 
-  delete = async (
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ): Promise<void> => {
-    try {
-      const roleId = parseInt(req.params.id, 10)
-      if (isNaN(roleId)) {
-        throw boom.unauthorized("Invalid role ID")
-        return
-      }
-      const deletedRole = await this.roleModel.getById(roleId)
-      if (!deletedRole) {
-        throw boom.notFound("Role not found")
-        return
-      }
-      await this.roleModel.delete(roleId)
-      res.status(204).json({ message: "Role deleted successfully" })
-    } catch (error) {
-      next(error)
-    }
-  }
+  delete = async (req: Request, res: Response, next: NextFunction) =>
+    deleteEntity(req, res, next, this.roleModel, "role")
 
   update = async (
     req: Request,

@@ -5,8 +5,10 @@ export const deleteEntity = async (
   req: Request,
   res: Response,
   next: NextFunction,
-  getById: (id: number) => Promise<unknown>,
-  deleteById: (id: number) => Promise<void>,
+  model: {
+    getById: (id: number) => Promise<unknown>
+    delete: (id: number) => Promise<unknown>
+  },
   entityName: string
 ) => {
   try {
@@ -15,12 +17,12 @@ export const deleteEntity = async (
       throw boom.badRequest("Invalid ID")
     }
 
-    const entity = await getById(id)
+    const entity = await model.getById(id)
     if (!entity) {
       throw boom.notFound(`${entityName} not found`)
     }
 
-    await deleteById(id)
+    await model.delete(id)
     res.status(204).send()
   } catch (error) {
     next(error)

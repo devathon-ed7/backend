@@ -3,7 +3,7 @@ import {
   PermissionModelInterface,
   CreatePermissionType,
   UpdatePermissionType
-} from "../models/mariadb/permission"
+} from "../interfaces"
 import boom from "@hapi/boom"
 import { deleteEntity } from "../utils/controllerUtils"
 
@@ -78,16 +78,8 @@ export class PermissionController {
     }
   }
 
-  delete = (req: Request, res: Response, next: NextFunction) => {
-    return deleteEntity(
-      req,
-      res,
-      next,
-      this.permissionModel.getById.bind(this.permissionModel),
-      this.permissionModel.delete.bind(this.permissionModel),
-      "Permission"
-    )
-  }
+  delete = (req: Request, res: Response, next: NextFunction) =>
+    deleteEntity(req, res, next, this.permissionModel, "Permission")
 
   update = async (
     req: Request,

@@ -36,14 +36,13 @@ export default class UserModel {
   static update = async (user: UpdateUserType) =>
     await updateById(prisma.user_accounts, user, user.id as number)
 
-  static delete = async (id: number) => {
-    const deletedUser = await prisma.user_accounts.delete({
+  static delete = async (id: number) =>
+    await prisma.user_accounts.delete({
       where: {
         id
       }
     })
-    return deletedUser
-  }
+
   static getByUsername = async (username: string) =>
     await findUnique(
       prisma.user_accounts,

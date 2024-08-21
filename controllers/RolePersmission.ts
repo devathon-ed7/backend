@@ -2,7 +2,7 @@ import { Request, Response, NextFunction } from "express"
 import {
   CreateRolePermissionType,
   RolePermissionModelInterface
-} from "../models/mariadb/RolePersmission"
+} from "../interfaces"
 import boom from "@hapi/boom"
 import rolePermissionSchemas from "../schemas/RolePermission"
 

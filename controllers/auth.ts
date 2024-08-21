@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from "express"
-import { UserModelInterface } from "../models/mariadb/user"
+import { UserModelInterface } from "../interfaces"
 import { generateAccessToken, omitFields } from "../utils/middleware"
 import { CustomError } from "../utils/customError"
 import { verifyPassword } from "../utils/password-utils"

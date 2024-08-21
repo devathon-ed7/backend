@@ -1,9 +1,7 @@
 import { type NextFunction, type Request, type Response } from "express"
-import {
-  CreateTransactionType,
-  TransactionModelInterface
-} from "../models/mariadb/transaction"
+import { CreateTransactionType, TransactionModelInterface } from "../interfaces"
 import boom from "@hapi/boom"
+import { deleteEntity } from "../utils/controllerUtils"
 
 interface transactionRequest {
   product_id: number
@@ -73,15 +71,8 @@ export class TransactionController {
     }
   }
   //delete transaction
-  delete = async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const id = this.extractId(req)
-      await this.deleteTransaction(id)
-      res.status(204)
-    } catch (error) {
-      next(error)
-    }
-  }
+  delete = async (req: Request, res: Response, next: NextFunction) =>
+    deleteEntity(req, res, next, this.transactionModel, "transaction")
 
   /**
    *  Extract the product id from the request
@@ -173,31 +164,5 @@ export class TransactionController {
     } catch (error) {
       throw boom.badImplementation("Failed to update transaction")
     }
-  }
-
-  /**
-   *  Delete the transaction
-   * @param id
-   * @returns   Promise<InventoryTransaction[]>
-   */
-  private async deleteTransaction(id: number) {
-    try {
-      return await this.transactionModel.delete(id)
-    } catch (error) {
-      throw boom.badImplementation("Failed to delete transaction")
-    }
-  }
-
-  /**
-   *  Extract the id from the request
-   * @param request
-   * @returns  number
-   */
-  private extractId(req: Request): number {
-    const id = parseInt(req.params.id)
-    if (isNaN(id)) {
-      throw boom.badRequest("Id is missing")
-    }
-    return id
   }
 } //end class
