@@ -1,41 +1,10 @@
 import { PrismaClient, RolePermission } from "@prisma/client"
-
-export interface RolePersmissionDocument extends RolePermission {}
-
-export type CreateRolePermissionType = Pick<
-  RolePermission,
-  "role_id" | "permission_id" | "active"
->
-export type UpdateRolePermissionType = Partial<RolePermission>
-
-//importan to use many to many relationship
-export interface CompoundKey {
-  role_id_permission_id: {
-    role_id: number
-    permission_id: number
-  }
-}
-
-export interface RolePermissionModelInterface {
-  getCompoundKey(id: { role_id: number; permission_id: number }): CompoundKey
-  create(data: {
-    role_id: number
-    permission_id: number
-    active: boolean
-  }): Promise<RolePersmissionDocument>
-  update(
-    id: { role_id: number; permission_id: number },
-    data: UpdateRolePermissionType
-  ): Promise<RolePersmissionDocument>
-  getPermissionsForRole(role_id: number): Promise<RolePermission[]>
-  getRolesForPermission(permission_id: number): Promise<RolePermission[]>
-  getAllPermissions(): Promise<RolePermission[]>
-  getAllRoles(): Promise<RolePermission[]>
-  getRolePermission(id: {
-    role_id: number
-    permission_id: number
-  }): Promise<RolePermission | null>
-}
+import {
+  CompoundKey,
+  CreateRolePermissionType,
+  RolePersmissionDocument
+} from "../../interfaces"
+import { findManyWithInclude } from "../../utils/modelUtils"
 
 const prisma = new PrismaClient()
 
@@ -56,12 +25,10 @@ export default class RolePermissionModel {
     role_id: number
     permission_id: number
     active: boolean
-  }): Promise<RolePersmissionDocument> => {
-    const result = await prisma.rolePermission.create({
+  }): Promise<RolePersmissionDocument> =>
+    await prisma.rolePermission.create({
       data: data
     })
-    return result
-  }
 
   static update = async (
     id: { role_id: number; permission_id: number },
@@ -82,13 +49,12 @@ export default class RolePermissionModel {
     return result
   }
 
-  /**
-   * Get all permissions for a role
-   * @param role_id
-   * @returns
-   */
   static getPermissionsForRole = async (role_id: number) => {
-    return await this.getRolePermissions({ role_id }, { permission: true })
+    return await findManyWithInclude(
+      prisma.rolePermission,
+      { role_id },
+      { permission: true }
+    )
   }
 
   /**
@@ -97,7 +63,11 @@ export default class RolePermissionModel {
    * @returns
    */
   static getRolesForPermission = async (permission_id: number) => {
-    return await this.getRolePermissions({ permission_id }, { role: true })
+    return await findManyWithInclude(
+      prisma.rolePermission,
+      { permission_id },
+      { role: true }
+    )
   }
 
   /**
@@ -141,21 +111,5 @@ export default class RolePermissionModel {
     })
 
     return rolePermission
-  }
-
-  /**
-   * Generic function to get roles or permissions by ID
-   * @param where - Search condition (object with corresponding ID)
-   * @param include - Object that defines the relationships to include
-   */
-  private static async getRolePermissions(
-    where: Record<string, number>,
-    include: Record<string, boolean>
-  ) {
-    const result = await prisma.rolePermission.findMany({
-      where,
-      include
-    })
-    return result
   }
 }

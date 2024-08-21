@@ -17,6 +17,19 @@ export const findMany = async <T>(
     }
   })
 
+export const findManyWithInclude = async <T>(
+  model: {
+    findMany: (args: {
+      where: Record<string, number>
+      include?: Record<string, boolean>
+    }) => Promise<T[]>
+  },
+  where: Record<string, number>,
+  include?: Record<string, boolean>
+): Promise<T[]> => {
+  return await model.findMany({ where, include })
+}
+
 export const checkIfExists = async <T>(
   model: { getById: (id: number) => Promise<T | null> },
   id: number,
