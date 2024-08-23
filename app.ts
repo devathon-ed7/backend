@@ -96,7 +96,7 @@ app.use(
 app.use(
   `${API_VERSION}/products`,
   middleware.userExtractor,
-  middleware.upload.single("files"),
+  middleware.upload.single("file"),
   CreateProductRouter({
     categoryModel: CategoryModel,
     supplierModel: SupplierModel,
@@ -108,7 +108,7 @@ app.use(
 app.use(
   `${API_VERSION}/transactions`,
   middleware.userExtractor,
-  createTransactionRouter({transactionModel: TransactionModel  })
+  createTransactionRouter({ transactionModel: TransactionModel })
 )
 
 //static files
