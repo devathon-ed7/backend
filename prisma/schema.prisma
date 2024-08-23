@@ -1,0 +1,101 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["omitApi"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User_accounts {
+  id           Int           @id @default(autoincrement())
+  username     String        @unique
+  password     String
+  user_details User_details?
+}
+
+model User_details {
+  id               Int           @id @default(autoincrement())
+  description      String?
+  notes            String?
+  email            String?
+  name             String?
+  user_account_id  Int           @unique
+  profile_filename String?
+  role_id          Int?
+  user_account     User_accounts @relation(fields: [user_account_id], references: [id], onDelete: Cascade)
+  role             Roles?        @relation(fields: [role_id], references: [id])
+}
+
+model Roles {
+  id           Int              @id @default(autoincrement())
+  name         String
+  description  String?
+  permissions  RolePermission[]
+  user_details User_details[]
+}
+
+model Supplier {
+  id       Int       @id @default(autoincrement())
+  name     String
+  location String
+  contact  String
+  products Product[]
+}
+
+model Category {
+  id          Int       @id @default(autoincrement())
+  name        String
+  description String
+  products    Product[]
+}
+
+model Product {
+  id          Int      @id @default(autoincrement())
+  name        String
+  description String?
+  code        String?  @unique
+  stock       Int
+  sold        Int      @default(0)
+  notes       String?
+  price       Int
+  supplier_id Int
+  category_id Int
+  images      String?
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt()
+  supplier    Supplier @relation(fields: [supplier_id], references: [id])
+
+  category             Category               @relation(fields: [category_id], references: [id])
+  InventoryTransaction InventoryTransaction[]
+}
+
+model Permissions {
+  id    Int              @id @default(autoincrement())
+  name  String
+  roles RolePermission[]
+}
+
+model RolePermission {
+  role          Roles       @relation(fields: [role_id], references: [id])
+  role_id       Int
+  permission    Permissions @relation(fields: [permission_id], references: [id])
+  permission_id Int
+  active        Boolean     @default(false)
+
+  @@id([role_id, permission_id])
+}
+
+model InventoryTransaction {
+  id               Int      @id @default(autoincrement())
+  product_id       Int
+  quantity         Int
+  code             String
+  transaction_type String //in  or out
+  created_at       DateTime @default(now())
+  product          Product  @relation(fields: [product_id], references: [id])
+}

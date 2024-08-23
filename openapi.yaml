@@ -1,0 +1,1134 @@
+openapi: 3.0.3
+info:
+  title: Inventory System API
+  description: |-
+    This API provides a comprehensive set of endpoints to manage an inventory system, including users, roles, permissions, products, categories, and suppliers.
+
+    With this API, you can:
+
+    - Manage user accounts and their associated roles and permissions
+    - Create, read, update, and delete product categories
+    - Create, read, update, and delete product suppliers
+    - Manage product inventory, including adding, updating, and retrieving product information
+
+    The API uses role-based access control (RBAC) to ensure that users can only perform actions that they are authorized to do based on their assigned roles and permissions.
+  version: "1.0"
+
+servers:
+  - url: https://localhost:3000/api/v1
+    description: Backend server
+tags:
+  - name: auth
+    description: Authentication
+  - name: users
+    description: Users management
+  - name: suppliers
+    description: Supplier management
+  - name: roles
+    description: Role management
+  - name: permissions
+    description: Permissions management
+  - name: categories
+    description: Categories management
+  - name: role-permissions
+    description: Role permissions management
+  - name: transactions
+    description: transactions management
+  
+paths:
+  /auth/login:
+    post:
+      tags:
+        - auth
+      summary: Login
+      description: User login.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Auth"
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+               properties:
+                  user:
+                    type: object
+                    properties:
+                      id:
+                        type: integer
+                        example: 1
+                      username:
+                        type: string
+                        example: "admin"
+                      password:
+                        type: string
+                        example: ""  # No se recomienda devolver contraseñas
+                      user_details:
+                        type: object
+                        properties:
+                          id:
+                            type: integer
+                            example: 1
+                          description:
+                            type: string
+                            example: "super admin"
+                          notes:
+                            type: string
+                            nullable: true
+                            example: null
+                          email:
+                            type: string
+                            example: "admin@gmail.com"
+                          name:
+                            type: string
+                            example: "Alpha Omega"
+                          user_account_id:
+                            type: integer
+                            example: 1
+                          profile_filename:
+                            type: string
+                            nullable: true
+                            example: null
+                          role_id:
+                            type: integer
+                            example: 1
+                          role:
+                            type: object
+                            properties:
+                              id:
+                                type: integer
+                                example: 1
+                              name:
+                                type: string
+                                example: "admin"
+                              description:
+                                type: string
+                                example: "administration manager"
+                  token:
+                    type: string
+                    example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwiaWF0IjoxNzIzOTE1OTg0fQ.GnpVQHu6BGj-JaH_9A3zRH_hMU5Z7JtzhNVdHYQCN5"
+                  
+        "400":
+          description: All fields are necessary
+        "401":
+          description: Incorrect user or password
+        "500":
+          description: Internal server error
+  /api/v1/users:
+    get:
+      tags:
+        - users
+      summary: Get user
+      description: Retrieves all users.
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Users"
+        "400":
+          description: Unauthorized
+        "404":
+          description: User not found
+        "500":
+          description: Internal server error
+    post:
+      tags:
+        - users
+      summary: Create user
+      description: Creates a new user.
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+                user:
+                  $ref: "#/components/schemas/Users"
+              
+      security:
+        - bearerAuth: []
+      responses:
+        "201":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  username:
+                    type: string
+                  id:
+                    type: string
+        "400":
+          description: Unauthorized
+        "500":
+          description: Internal server error
+  /api/v1/users/{id}:
+    get:
+        tags:
+          - users
+        summary: Get user by id
+        description: Retrieves the user.
+        parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+        security:
+          - bearerAuth: []
+        responses:
+          200:
+            description: Successful response
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/Users'
+          400:
+            description: Unauthorized
+          404:
+            description: User not found
+          500:
+            description: Internal server error
+    put:
+      tags:
+        - users
+      summary: Update user
+      description: Updates the user.
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+                user:
+                  $ref: "#/components/schemas/Users"
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  username:
+                    type: string
+                  id:
+                    type: string
+        "400":
+          description: Unauthorized
+        "404":
+          description: User not found
+        "500":
+          description: Internal server error
+
+    delete:
+      tags:
+        - users
+      summary: Delete user
+      description: Delete the user.
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Successful response
+        "400":
+          description: Unauthorized
+        "404":
+          description: User not found
+        "500":
+          description: Internal server error
+  /api/v1/roles:
+    get:
+      tags:
+        - roles
+      summary: Get all roles
+      description: Retrieve a list of all available roles.
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Role"
+    post:
+      tags:
+        - roles
+      summary: Create a new role
+      description: Create a new role.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Role"
+      security:
+        - bearerAuth: []
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Role"
+  /api/v1/roles/{id}:
+    get:
+      tags:
+        - roles
+      summary: Get a role by ID
+      description: Retrieve a role by its ID.
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Role"
+    put:
+      tags:
+        - roles
+      summary: Update a role
+      description: Update an existing role.
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Role"
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Role"
+    delete:
+      tags:
+        - roles
+      summary: Delete a role
+      description: Delete an existing role.
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      security:
+        - bearerAuth: []
+      responses:
+        "204":
+          description: Role deleted successfully
+  /api/v1/permissions:
+    get:
+      tags:
+        - permissions
+      summary: Get all permissions
+      description: Retrieve a list of all permissions.
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Permission"
+        "500":
+          description: Internal server error
+    post:
+      tags:
+        - permissions
+      summary: Create a new permission
+      description: Create a new permission.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PermissionCreate"
+      security:
+        - bearerAuth: []
+      responses:
+        "201":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Permission"
+        "400":
+          description: Bad request
+        "500":
+          description: Internal server error
+  /api/v1/permissions/{id}:
+    get:
+      tags:
+        - permissions
+      summary: Get a permission by ID
+      description: Retrieve a permission by its ID.
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Permission"
+        "404":
+          description: Permission not found
+        "500":
+          description: Internal server error
+
+    delete:
+      tags:
+        - permissions
+      summary: Delete a permission
+      description: Delete a permission by its ID.
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      security:
+        - bearerAuth: []
+      responses:
+        "204":
+          description: Successful response
+        "404":
+          description: Permission not found
+        "500":
+          description: Internal server error
+    put:
+      tags:
+        - permissions
+      summary: Update a permission
+      description: Update a permission by its ID.
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PermissionCreate"
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Permission"
+        "404":
+          description: Permission not found
+        "500":
+          description: Internal server error
+  /api/v1/suppliers:
+    get:
+      tags:
+        - suppliers
+      summary: Get all suppliers
+      description: Retrieve a list of all available suppliers.
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Supplier"
+  /api/v1/suppliers/{id}:
+    get:
+      tags:
+        - suppliers
+      summary: Get a supplier by ID
+      description: Retrieve a supplier by its ID.
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Supplier"
+    put:
+      tags:
+        - suppliers
+      summary: Update a supplier
+      description: Update an existing supplier.
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Supplier"
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Supplier"
+    delete:
+      tags:
+        - suppliers
+      summary: Delete a supplier
+      description: Delete an existing supplier.
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        "204":
+          description: Successful response
+  /api/v1/suppliers/name/{name}:
+    get:
+      tags:
+        - suppliers
+      summary: Get a supplier by name
+      description: Retrieve a supplier by its name.
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: name
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Supplier"
+  /api/v1/suppliers/location/{location}:
+    get:
+      tags:
+        - suppliers
+      summary: Get a supplier by location
+      description: Retrieve a supplier by its location.
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: location
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Supplier"
+  /api/v1/suppliers/contact/{contact}:
+    get:
+      tags:
+        - suppliers
+      summary: Get a supplier by contact
+      description: Retrieve a supplier by its contact.
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: contact
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Supplier"
+  /api/v1/categories:
+    get:
+      tags:
+        - categories
+      summary: Get all categories
+      description: Retrieve a list of all available categories.
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Category"
+    post:
+      tags:
+        - categories
+      summary: Create a new category
+      description: Create a new category.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Category"
+      security:
+        - bearerAuth: []
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Category"
+  /api/v1/categories/{id}:
+    get:
+      tags:
+        - categories
+      summary: Get a category by ID
+      description: Retrieve a category by its ID.
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Category"
+    delete:
+      tags:
+        - categories
+      summary: Delete a category
+      description: Delete an existing category.
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      security:
+        - bearerAuth: []
+      responses:
+        "204":
+          description: Successful response
+    put:
+      tags:
+        - categories
+      summary: Update a category
+      description: Update an existing category.
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Category"
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Category"
+  /api/v1/categories/name/{name}:
+    get:
+      tags:
+        - categories
+      summary: Get a category by name
+      description: Retrieve a category by its name.
+      parameters:
+        - in: path
+          name: name
+          required: true
+          schema:
+            type: string
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Category"
+  /api/v1/categories/description/{description}:
+    get:
+      tags:
+        - categories
+      summary: Get a category by description
+      description: Retrieve a category by its description.
+      parameters:
+        - in: path
+          name: description
+          required: true
+          schema:
+            type: string
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Category"
+  /api/v1/role-permissions:
+    post:
+      tags:
+        - role-permissions
+      summary: Create a new role permission
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RolePermission"
+      security:
+        - bearerAuth: []
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RolePermission"
+    put:
+      tags:
+        - role-permissions
+      summary: Update a role permission
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RolePermission"
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RolePermission"
+  /api/v1/role-permissions/{role_id}:
+    get:
+      tags:
+        - role-permissions
+      summary: Get permissions for a role
+      parameters:
+        - in: path
+          name: role_id
+          required: true
+          schema:
+            type: integer
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/RolePermission"
+  /api/v1/transactions:
+    get:
+      tags:
+        - transactions
+      summary: Get all transactions
+      description: Retrieve a list of all available transactions in and out.
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Transaction"
+    post:
+      tags:
+        - transactions
+      summary: Create new transaction
+      description: Create new transaction
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Transaction"
+      security:
+        - bearerAuth: []
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Transaction"
+  /api/v1/transactions/{id}:
+    put:
+      tags:
+        - transactions
+      summary: Update a transaction 
+      description: Update existing transaction
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Transaction"
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Transaction"
+    delete:
+      tags:
+        - transactions
+      summary: Delete a transaction by id
+      description: Delete an existing transaction.
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      security:
+        - bearerAuth: []
+      responses:
+        "204":
+          description: Transaction deleted successfully
+  /api/v1/transactions/product/{product_id}:
+    get:
+      tags:
+        - transactions
+      summary: Get all transactions by ID product
+      description: Retrieve a list of all transaction for product
+      parameters:
+        - in: path
+          name: product_id
+          required: true
+          schema:
+            type: integer
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                 $ref: "#/components/schemas/Transaction"
+  /api/v1/transactions/code/{code}:
+    get:
+      tags:
+        - transactions
+      summary: Get all transactions by Code product
+      description: Retrieve a list of all transaction for product
+      parameters:
+        - in: path
+          name: code
+          required: true
+          schema:
+            type: string
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Transaction"
+      
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+  schemas:
+    Auth:
+      type: object
+      required:
+        - username
+        - password
+      properties:
+        username:
+          type: string
+        password:
+          type: string
+    Users:
+      type: object
+      required:
+        - username
+        - password
+      properties:
+        id:
+          type: integer
+          description: Unique identifier for the user
+        username:
+          type: string
+          minLength: 3
+          maxLength: 30
+          description: Username for the user, between 3 and 30 characters
+        password:
+          type: string
+        user_details:
+          type: object
+          properties:
+            id:
+              type: integer
+              description: Unique identifier for the user details
+            description:
+              type: string
+              description: Generic description of the user
+            notes:
+              type: string
+              nullable: true
+              description: Additional notes about the user
+            email:
+              type: string
+              format: email
+              description: Email address of the user
+            name:
+              type: string
+              description: Full name of the user
+            user_account_id:
+              type: integer
+              description: Unique identifier for the user's account
+            profile_filename:
+              type: string
+              format: uri
+              description: URL of the user's profile picture
+            role_id:
+              type: integer
+              description: Unique identifier for the user's role
+    Role:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+    Permission:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+    PermissionCreate:
+      type: object
+      properties:
+        name:
+          type: string
+    Product:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int32
+          description: Unique identifier for the product
+        name:
+          type: string
+          description: Name of the product
+        description:
+          type: string
+          description: Description of the product
+        stock:
+          type: integer
+          format: int32
+          description: Current stock level of the product
+        notes:
+          type: string
+          description: Additional notes about the product
+        created_at:
+          type: string
+          format: date-time
+          description: Timestamp of when the product was created
+        updated_at:
+          type: string
+          format: date-time
+          description: Timestamp of when the product was last updated
+        user_id:
+          type: integer
+          format: int32
+          description: ID of the user associated with the product
+        supplier_id:
+          type: integer
+          format: int32
+          description: ID of the supplier associated with the product
+    Supplier:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        location:
+          type: string
+        contact:
+          type: string
+        Product:
+          type: array
+          items:
+            $ref: "#/components/schemas/Product"
+    Category:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        description:
+          type: string
+        Product:
+          type: array
+          items:
+            $ref: "#/components/schemas/Product"
+    RolePermission:
+      type: object
+      properties:
+        id:
+          type: integer
+        role_id:
+          type: string
+        permission_id:
+          type: string
+        active:
+          type: boolean
+    Transaction:
+      type: object
+      properties: 
+        id:
+          type: integer
+          description: Unique identifier for the transaction
+        product_id:
+          type: integer
+          description: Unique identifier for the product
+        code:
+          type: string
+        quantity: 
+          type: integer
+        transaction_type:
+          type: string
+          enum: [in, out]
+          example: "in"
+        created_at:
+          type: string
+          format: date-time
+          example: "2023-10-17T14:30:00Z"
+          
+          
+    
