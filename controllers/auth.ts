@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from "express"
 import { UserModelInterface } from "../interfaces"
 import { generateAccessToken, omitFields } from "../utils/middleware"
-import { CustomError } from "../utils/customError"
+import boom from "@hapi/boom"
 import { verifyPassword } from "../utils/password-utils"
 
 export class AuthController {
@@ -19,20 +19,20 @@ export class AuthController {
     try {
       const { username, password } = request.body
       if (!username || !password) {
-        throw CustomError.BadRequest("All fields are necessary")
+        throw boom.badRequest("All fields are necessary")
         return
       }
 
       const user = await this.userModel.getByUsername(username)
 
       if (!user) {
-        throw CustomError.NotFound("Error user or passsword is incorrect")
+        throw boom.notFound("Error user or passsword is incorrect")
         return
       }
 
       const isPasswordCorrect = await verifyPassword(password, user.password)
       if (!isPasswordCorrect) {
-        throw CustomError.Unauthorized("Error user or passsword is incorrect")
+        throw boom.unauthorized("Error user or passsword is incorrect")
         return
       }
 
