@@ -52,7 +52,7 @@ export class ProductController {
       res,
       next,
       this.productModel.getById,
-      "products",
+      "product",
       "id",
       "number"
     )
@@ -242,6 +242,7 @@ export class ProductController {
       stock: product.stock,
       notes: product.notes || db_product.notes,
       price: product.price || db_product.price,
+      category_id: product.category_id,
       supplier_id: product.supplier_id,
       sold: product.sold,
       images:
