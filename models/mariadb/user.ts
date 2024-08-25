@@ -44,9 +44,14 @@ export default class UserModel {
     })
 
   static getByUsername = async (username: string) =>
-    await findUnique(
-      prisma.user_accounts,
-      { username },
-      { user_details: { include: { role: true } } }
-    )
+    await prisma.user_accounts.findUnique({
+      where: { username },
+      include: {
+        user_details: {
+          include: {
+            role: true
+          }
+        }
+      }
+    })
 }
