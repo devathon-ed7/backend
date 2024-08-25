@@ -105,7 +105,7 @@ export const getByNumberParam = async (
       throw boom.notFound(`${entityName} not found`)
     }
 
-    res.status(200).json({ result })
+    res.status(200).json({ [entityName]: result })
   } catch (error) {
     next(error)
   }

@@ -65,7 +65,7 @@ model Product {
   price       Int
   supplier_id Int
   category_id Int
-  images      String[]
+  images      String?
   created_at  DateTime @default(now())
   updated_at  DateTime @updatedAt()
   supplier    Supplier @relation(fields: [supplier_id], references: [id])

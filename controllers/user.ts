@@ -105,12 +105,7 @@ export class UserController {
 
   delete = async (req: Request, res: Response, next: NextFunction) =>
     deleteEntity(req, res, next, this.userModel, "user")
-  /**
-   *  Update the user
-   * @param request
-   * @param response
-   * @param next
-   */
+
   update = async (
     req: Request,
     res: Response,
@@ -231,16 +226,28 @@ export class UserController {
     userDetailsPayload: userDetailsRequest,
     profileFilename: string | null
   ): CreateUserDetailsType {
-    return {
-      description: userDetailsPayload.description || null,
-      notes: userDetailsPayload.notes || null,
-      user_account_id: user.id,
-      role_id: userDetailsPayload.role_id
-        ? parseInt(userDetailsPayload.role_id.toString(), 10)
-        : null,
-      profile_filename: profileFilename,
-      email: userDetailsPayload.email || null,
-      name: userDetailsPayload.name || null
+    if (userDetailsPayload) {
+      return {
+        description: userDetailsPayload.description || null,
+        notes: userDetailsPayload.notes || null,
+        user_account_id: user.id,
+        role_id: userDetailsPayload.role_id
+          ? parseInt(userDetailsPayload.role_id.toString(), 10)
+          : null,
+        profile_filename: profileFilename,
+        email: userDetailsPayload.email || null,
+        name: userDetailsPayload.name || null
+      }
+    } else {
+      return {
+        description: null,
+        notes: null,
+        user_account_id: user.id,
+        role_id: null,
+        profile_filename: profileFilename || null,
+        email: null,
+        name: null
+      }
     }
   }
 

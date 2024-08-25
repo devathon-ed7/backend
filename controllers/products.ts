@@ -8,7 +8,7 @@ import {
 } from "../interfaces"
 import { Request, Response, NextFunction } from "express"
 import boom from "@hapi/boom"
-import { getFilesUrl } from "../utils/imageUrl"
+import { getFilesUrl, getFileUrl } from "../utils/imageUrl"
 import { checkIfExists } from "../utils/modelUtils"
 import {
   deleteEntity,
@@ -52,7 +52,7 @@ export class ProductController {
       res,
       next,
       this.productModel.getById,
-      "products",
+      "product",
       "id",
       "number"
     )
@@ -83,11 +83,18 @@ export class ProductController {
   create = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { product } = req.body
-      const files = req.files
-      const images =
-        files && Array.isArray(files) ? getFilesUrl(req, files) : []
-      await checkIfExists(this.productModel, product.category_id, "Category")
-      await checkIfExists(this.productModel, product.supplier_id, "Supplier")
+      const file = req.file
+      const images = file ? getFileUrl(req, file) : null
+      await checkIfExists(
+        this.productModel,
+        product.category_id as number,
+        "Category"
+      )
+      await checkIfExists(
+        this.productModel,
+        product.supplier_id as number,
+        "Supplier"
+      )
 
       const createdProduct = await this.createProduct(product, images)
 
@@ -104,13 +111,12 @@ export class ProductController {
     try {
       const id = parseInt(req.params.id)
       const { product } = req.body
-      const files = req.files
-      const images =
-        files && Array.isArray(files) ? getFilesUrl(req, files) : []
-
+      const file = req.file
+      const images = file ? getFileUrl(req, file) : null
       const db_product = await checkIfExists(this.productModel, id, "Product")
-      await checkIfExists(this.productModel, product.category_id, "Category")
-      await checkIfExists(this.productModel, product.supplier_id, "Supplier")
+
+      //await checkIfExists(this.productModel, product.category_id, "Category")
+      //await checkIfExists(this.productModel, product.supplier_id, "Supplier")
 
       const updatedProduct = await this.updateProduct(
         product,
@@ -239,15 +245,13 @@ export class ProductController {
       id: db_product.id,
       name: product.name || db_product.name,
       description: product.description || db_product.description,
-      stock: product.stock,
+      stock: Number(product.stock) || db_product.stock,
       notes: product.notes || db_product.notes,
-      price: product.price || db_product.price,
-      supplier_id: product.supplier_id,
-      sold: product.sold,
-      images:
-        db_product.images.length > 0
-          ? [...db_product.images, ...images]
-          : images
+      price: Number(product.price) || db_product.price,
+      category_id: Number(product.category_id) || db_product.category_id,
+      supplier_id: Number(product.supplier_id) || db_product.supplier_id,
+      sold: Number(product.sold) || db_product.sold,
+      images: images || db_product.images
     }
 
     return data
