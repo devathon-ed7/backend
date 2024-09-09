@@ -125,15 +125,64 @@ paths:
       description: Retrieves all users.
       security:
         - bearerAuth: []
+      parameters:
+      - name: page
+        in: query
+        required: false
+        description: The page number to retrieve (default is 1).
+        schema:
+          type: integer
+          example: 1
+      - name: limit
+        in: query
+        required: false
+        description: The number of users per page (default is 10).
+        schema:
+          type: integer
+          example: 10
+      - name: sortBy
+        in: query
+        required: false
+        description: The field by which to sort the users (default is 'id').
+        schema:
+          type: string
+          example: username
+      - name: order
+        in: query
+        required: false
+        description: The order of sorting (asc for ascending, desc for descending; default is 'asc').
+        schema:
+          type: string
+          enum: [asc, desc]
+          example: asc
       responses:
         "200":
           description: Successful response
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/Users"
+                type: object
+                properties:
+                  users:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Users"
+                  totalUsers:
+                   type: integer
+                   description: Total number of users.
+                  totalPages:
+                   type: integer
+                   description: Total number of pages.
+                  currentPage:
+                   type: integer
+                   description: The current page number.
+                  sort:
+                   type: object
+                   properties:
+                    sortBy:
+                      type: string
+                    order:
+                      type: string
         "400":
           description: Unauthorized
         "404":
