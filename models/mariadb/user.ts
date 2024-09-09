@@ -5,7 +5,7 @@ import { findUnique, updateById } from "../../utils/modelUtils"
 
 const prisma = new PrismaClient()
 export default class UserModel {
-  static getAll = async () => {
+  static getAll = async (page: number = 1, limit: number = 10) => {
     const users = await prisma.user_accounts.findMany({
       include: {
         user_details: {
@@ -13,7 +13,9 @@ export default class UserModel {
             role: true
           }
         }
-      }
+      },
+      skip: (page - 1) * limit,
+      take: limit
     })
     const usersWithoutPassword = users.map((user) =>
       omitFields(user, ["password"])
@@ -54,4 +56,6 @@ export default class UserModel {
         }
       }
     })
+
+  static count = async () => await prisma.user_accounts.count()
 }

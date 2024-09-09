@@ -42,8 +42,23 @@ export class UserController {
     this.detailsModel = detailsModel
   }
 
-  getAll = async (request: Request, response: Response, next: NextFunction) =>
-    await getAllEntities(request, response, next, this.userModel, "users")
+  getAll = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const page = parseInt(req.query.page as string, 10) || 1
+      const limit = parseInt(req.query.limit as string, 10) || 10
+
+      const [users, totalUsers] = await Promise.all([
+        this.userModel.getAll(page, limit),
+        this.userModel.count()
+      ])
+
+      const totalPages = Math.ceil(totalUsers / limit)
+
+      res.status(200).json({ users, totalUsers, totalPages, currentPage: page })
+    } catch (error) {
+      next(error)
+    }
+  }
 
   getById = async (
     req: Request,
