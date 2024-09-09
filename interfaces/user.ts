@@ -1,5 +1,6 @@
 import { User_accounts, User_details } from "@prisma/client"
-import { numberRequest, stringRequest } from "../types"
+import { numberRequest, stringRequest } from "./request"
+import { SortOder } from "./pagination"
 
 export interface UserDetailsRequest {
   id: number
@@ -17,7 +18,12 @@ export type CreateUserType = Pick<User_accounts, "username" | "password">
 export type UpdateUserType = Partial<User_accounts>
 
 export interface UserModelInterface {
-  getAll: (page: number, limit: number) => Promise<Partial<UserDocument>[]>
+  getAll: (
+    page: number,
+    limit: number,
+    sortBy: string,
+    order: SortOder
+  ) => Promise<Partial<UserDocument>[]>
   getById: (id: number) => Promise<UserDocument | null>
   create: (user: CreateUserType) => Promise<UserDocument>
   update: (user: UpdateUserType) => Promise<UserDocument>

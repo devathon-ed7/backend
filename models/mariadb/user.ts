@@ -1,11 +1,16 @@
 import { PrismaClient } from "@prisma/client"
 import { omitFields } from "../../utils/middleware"
-import { CreateUserType, UpdateUserType } from "../../interfaces"
+import { CreateUserType, SortOder, UpdateUserType } from "../../interfaces"
 import { findUnique, updateById } from "../../utils/modelUtils"
 
 const prisma = new PrismaClient()
 export default class UserModel {
-  static getAll = async (page: number = 1, limit: number = 10) => {
+  static getAll = async (
+    page: number = 1,
+    limit: number = 10,
+    sortBy: string = "id",
+    order: SortOder = "asc"
+  ) => {
     const users = await prisma.user_accounts.findMany({
       include: {
         user_details: {
@@ -15,7 +20,10 @@ export default class UserModel {
         }
       },
       skip: (page - 1) * limit,
-      take: limit
+      take: limit,
+      orderBy: {
+        [sortBy]: order
+      }
     })
     const usersWithoutPassword = users.map((user) =>
       omitFields(user, ["password"])

@@ -3,7 +3,7 @@ import { hashPassword } from "../utils/password-utils"
 import boom from "@hapi/boom"
 import { omitFields } from "../utils/middleware"
 import { getFileUrl } from "../utils/imageUrl"
-import { numberRequest, stringRequest } from "../types"
+import { numberRequest, SortOder, stringRequest } from "../interfaces"
 import { checkIfExists } from "../utils/modelUtils"
 import {
   CreateUserDetailsType,
@@ -14,7 +14,7 @@ import {
   UserDocument,
   UserModelInterface
 } from "../interfaces"
-import { deleteEntity, getAllEntities } from "../utils/controllerUtils"
+import { deleteEntity } from "../utils/controllerUtils"
 
 interface userDetailsRequest {
   id: numberRequest
@@ -46,15 +46,25 @@ export class UserController {
     try {
       const page = parseInt(req.query.page as string, 10) || 1
       const limit = parseInt(req.query.limit as string, 10) || 10
-
+      const sortBy = (req.query.sortBy as string) || "id"
+      const order = (req.query.order as SortOder) || "asc"
       const [users, totalUsers] = await Promise.all([
-        this.userModel.getAll(page, limit),
+        this.userModel.getAll(page, limit, sortBy, order),
         this.userModel.count()
       ])
 
       const totalPages = Math.ceil(totalUsers / limit)
 
-      res.status(200).json({ users, totalUsers, totalPages, currentPage: page })
+      res.status(200).json({
+        users,
+        totalUsers,
+        totalPages,
+        currentPage: page,
+        sort: {
+          sortBy,
+          order
+        }
+      })
     } catch (error) {
       next(error)
     }
