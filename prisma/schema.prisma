@@ -13,6 +13,7 @@ datasource db {
 
 model User_accounts {
   id           Int           @id @default(autoincrement())
+  email        String        @unique
   username     String        @unique
   password     String
   user_details User_details?
@@ -22,7 +23,6 @@ model User_details {
   id               Int           @id @default(autoincrement())
   description      String?
   notes            String?
-  email            String?
   name             String?
   user_account_id  Int           @unique
   profile_filename String?
