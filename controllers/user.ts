@@ -114,6 +114,7 @@ export class UserController {
     try {
       const userId = parseInt(req.params.id, 10)
       const { user } = req.body
+      console.log(user)
       const file = req.file
       const profileFilename = file ? getFileUrl(req, file) : null
 
