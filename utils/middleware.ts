@@ -1,4 +1,3 @@
-import jwt from "jsonwebtoken"
 import User, { UserDocument } from "../models/mariadb/user"
 import logger from "./logger"
 import { NextFunction, Request, Response } from "express"
@@ -7,6 +6,9 @@ import { createCustomError } from "./customError"
 import { errorHandler, boomErrorHandler } from "./errorHandler"
 import multer from "multer"
 import { v4 as uuid } from "uuid"
+import JWTToken from "./JWTToken"
+
+const jwtToken = new JWTToken()
 
 export const HTTP_STATUS = {
   BAD_REQUEST: 400,
@@ -53,7 +55,7 @@ const tokenExtractor = (
 
 const userExtractor = async (
   request: Request,
-  response: Response,
+  _response: Response,
   next: NextFunction
 ) => {
   try {
@@ -63,7 +65,7 @@ const userExtractor = async (
       throw createCustomError("token missing or invalid", "JsonWebTokenError")
     }
 
-    const decodedToken = jwt.verify(token, process.env.JWT_SECRET as string)
+    const decodedToken = jwtToken.verify(token)
 
     if (typeof decodedToken === "string") {
       throw createCustomError("token invalid", "JsonWebTokenError")
@@ -94,7 +96,7 @@ export const omitFields = (
 }
 
 export const generateAccessToken = (user: UserDocument) => {
-  return jwt.sign({ id: user.id }, process.env.JWT_SECRET as string)
+  return jwtToken.generate({ id: user.id })
 }
 
 interface RequestStorage extends Request {
