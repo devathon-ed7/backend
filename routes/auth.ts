@@ -11,5 +11,8 @@ export const createAuthRouter = ({ userModel }: CreateAuthRouterProps) => {
   const authController = new AuthController({ userModel })
 
   authRouter.post("/login", authController.login)
+  authRouter.get("/github/user", authController.getGithubUser)
+  authRouter.get("/callback/github/", authController.callbackGithub)
+  authRouter.get("/callback/google", authController.callbackGoogle)
   return authRouter
 }
