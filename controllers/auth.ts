@@ -10,12 +10,18 @@ import axios, { AxiosResponse } from "axios"
 dotenv.config()
 
 const TIME_OUT = 5000
+//github
 const clientId = process.env.CLIENT_ID
 const clientSecret = process.env.CLIENT_SECRET
 const githubApiUrl = process.env.GITHUB_API_URL
 const githubUrlUser = process.env.GITHUB_URL_USER
 const frontendUrl = process.env.FRONTEND_URL
-const url = `${githubApiUrl}?client_id=${clientId}&client_secret=${clientSecret}&code=`
+//google
+const googleClientId: string = process.env.GOOGLE_CLIENT_ID as string
+const googleClientSecret: string = process.env.GOOGLE_CLIENT_SECRET as string
+const googleApiUrl: string = process.env.GOOGLE_API_URL as string
+const googleApiUser: string = process.env.GOOGLE_API_USER as string
+const googleRedirectUri: string = process.env.GOOGLE_REDIRECT_URI as string
 
 export class AuthController {
   private userModel: UserModelInterface
@@ -96,7 +102,7 @@ export class AuthController {
 
       const result: AxiosResponse<{ access_token: string }> = await axios({
         method: "POST",
-        url: url + `${code}`,
+        url: `${githubApiUrl}?client_id=${clientId}&client_secret=${clientSecret}&code=${code}`,
         headers: {
           Accept: "application/json"
         }
@@ -107,6 +113,42 @@ export class AuthController {
       )
     } catch (error: unknown) {
       logger.error(`Error occurred: ${error}`)
+      next(error)
+    }
+  }
+
+  callbackGoogle = async (
+    request: Request,
+    response: Response,
+    next: NextFunction
+  ): Promise<void> => {
+    try {
+      const code: string = request.query.code as string
+
+      if (!code) {
+        throw boom.badRequest("Code is missing")
+      }
+
+      const tokenUrl = `${googleApiUrl}?client_id=${googleClientId}&client_secret=${googleClientSecret}&code=${code}&redirect_uri=${googleRedirectUri}&grant_type=authorization_code`
+
+      const result: AxiosResponse<{ access_token: string }> = await axios({
+        method: "POST",
+        url: tokenUrl,
+        headers: {
+          Accept: "application/json"
+        }
+      })
+
+      response.redirect(
+        `${frontendUrl}?access_token=${result.data.access_token}`
+      )
+    } catch (error: unknown) {
+      if (axios.isAxiosError(error)) {
+        logger.error(`Axios error: ${error.response?.data}`)
+        logger.error(`Status code: ${error.response?.status}`)
+      } else {
+        logger.error(`Error occurred: ${error}`)
+      }
       next(error)
     }
   }
