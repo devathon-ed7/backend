@@ -2,7 +2,7 @@ import { Request, Response, NextFunction } from "express"
 import { UserModelInterface } from "../interfaces"
 import { generateAccessToken, omitFields } from "../utils/middleware"
 import boom from "@hapi/boom"
-import { verifyPassword } from "../utils/password-utils"
+import { hashPassword, verifyPassword } from "../utils/password-utils"
 import dotenv from "dotenv"
 import logger from "../utils/logger"
 import axios, { AxiosResponse } from "axios"
@@ -74,12 +74,12 @@ export class AuthController {
       const user = await this.userModel.getByEmail(email)
 
       if (user) {
-        throw boom.badRequest("Username already exists")
+        throw boom.badRequest("email or password wrong")
       }
-
+      const passwordHash = await hashPassword(password)
       const newUser = await this.userModel.create({
         full_name: fullName,
-        password,
+        password: passwordHash,
         email
       })
 
