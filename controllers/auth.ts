@@ -36,25 +36,56 @@ export class AuthController {
     next: NextFunction
   ): Promise<void> => {
     try {
-      const { username, password } = request.body
-      if (!username || !password) {
+      const { email, password } = request.body
+      if (!email || !password) {
         throw boom.badRequest("All fields are necessary")
       }
 
-      const user = await this.userModel.getByUsername(username)
+      const user = await this.userModel.getByEmail(email)
 
       if (!user) {
-        throw boom.notFound("Error user or passsword is incorrect")
+        throw boom.notFound("Error wrong email or password")
       }
 
       const isPasswordCorrect = await verifyPassword(password, user.password)
       if (!isPasswordCorrect) {
-        throw boom.unauthorized("Error user or passsword is incorrect")
+        throw boom.unauthorized("Error wrong email or password")
       }
 
       const token = generateAccessToken(user)
       const userWithoutPassword = omitFields(user, ["password"])
       response.status(200).json({ user: userWithoutPassword, token })
+    } catch (error) {
+      next(error)
+    }
+  }
+
+  register = async (
+    request: Request,
+    response: Response,
+    next: NextFunction
+  ): Promise<void> => {
+    try {
+      const { fullName, password, email } = request.body
+      if (!fullName || !password || !email) {
+        throw boom.badRequest("All fields are necessary")
+      }
+
+      const user = await this.userModel.getByEmail(email)
+
+      if (user) {
+        throw boom.badRequest("Username already exists")
+      }
+
+      const newUser = await this.userModel.create({
+        full_name: fullName,
+        password,
+        email
+      })
+
+      const token = generateAccessToken(newUser)
+      const userWithoutPassword = omitFields(newUser, ["password"])
+      response.status(201).json({ user: userWithoutPassword, token })
     } catch (error) {
       next(error)
     }
