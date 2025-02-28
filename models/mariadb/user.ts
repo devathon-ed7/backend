@@ -4,6 +4,7 @@ import { CreateUserType, SortOder, UpdateUserType } from "../../interfaces"
 import { findUnique, updateById } from "../../utils/modelUtils"
 
 const prisma = new PrismaClient()
+
 export default class UserModel {
   static getAll = async (
     page: number = 1,
@@ -53,9 +54,11 @@ export default class UserModel {
       }
     })
 
-  static getByUsername = async (username: string) =>
+  static count = async () => await prisma.user_accounts.count()
+
+  static getByEmail = async (email: string) =>
     await prisma.user_accounts.findUnique({
-      where: { username },
+      where: { email },
       include: {
         user_details: {
           include: {
@@ -64,6 +67,4 @@ export default class UserModel {
         }
       }
     })
-
-  static count = async () => await prisma.user_accounts.count()
 }
