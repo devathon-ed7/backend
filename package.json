@@ -1,12 +1,12 @@
 {
   "name": "devathon7",
   "version": "1.0.0",
-  "main": "index.js",
+  "main": "server.ts",
   "license": "MIT",
   "type": "module",
   "scripts": {
     "lint": "eslint './**/*.{js,ts}' --fix",
-    "start": "npm run build && node dist/index.js",
+    "start": "npm run build && node dist/server.ts",
     "dev": "tsx watch server.ts",
     "build": "tsc"
   },
