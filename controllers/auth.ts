@@ -3,6 +3,7 @@ import { UserModelInterface } from "../interfaces"
 import { generateAccessToken, omitFields } from "../utils/middleware"
 import boom from "@hapi/boom"
 import { hashPassword, verifyPassword } from "../utils/password-utils"
+
 import dotenv from "dotenv"
 import logger from "../utils/logger"
 import axios, { AxiosResponse } from "axios"
@@ -22,6 +23,7 @@ const googleClientSecret: string = process.env.GOOGLE_CLIENT_SECRET as string
 const googleApiUrl: string = process.env.GOOGLE_API_URL as string
 const googleApiUser: string = process.env.GOOGLE_API_USER as string
 const googleRedirectUri: string = process.env.GOOGLE_REDIRECT_URI as string
+
 
 export class AuthController {
   private userModel: UserModelInterface
@@ -45,11 +47,14 @@ export class AuthController {
 
       if (!user) {
         throw boom.notFound("Error wrong email or password")
+
       }
 
       const isPasswordCorrect = await verifyPassword(password, user.password)
       if (!isPasswordCorrect) {
+
         throw boom.unauthorized("Error wrong email or password")
+
       }
 
       const token = generateAccessToken(user)
@@ -59,6 +64,7 @@ export class AuthController {
       next(error)
     }
   }
+
 
   register = async (
     request: Request,
@@ -90,6 +96,7 @@ export class AuthController {
       next(error)
     }
   }
+
 
   getGithubUser = async (
     request: Request,
@@ -133,7 +140,9 @@ export class AuthController {
 
       const result: AxiosResponse<{ access_token: string }> = await axios({
         method: "POST",
+
         url: `${githubApiUrl}?client_id=${clientId}&client_secret=${clientSecret}&code=${code}`,
+
         headers: {
           Accept: "application/json"
         }
@@ -147,6 +156,7 @@ export class AuthController {
       next(error)
     }
   }
+
 
   callbackGoogle = async (
     request: Request,
@@ -183,4 +193,5 @@ export class AuthController {
       next(error)
     }
   }
+
 }
