@@ -1,4 +1,6 @@
 import express, { type Express } from "express"
+import path from "path"
+import { fileURLToPath } from "url"
 
 // Configs
 import bodyParser from "body-parser"
@@ -39,6 +41,11 @@ app.use(cors({ credentials: true, origin: true }))
 app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({ extended: true }))
 app.disable("x-powered-by")
+
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
+
+app.set("views", path.join(__dirname, "views"))
 app.set("view engine", "ejs")
 
 // Routes
