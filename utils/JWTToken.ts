@@ -1,10 +1,14 @@
 import jwt from "jsonwebtoken"
 
+interface Payload {
+  [key: string]: string | number | boolean
+}
+
 class Token {
-  generate(payload) {
+  generate(payload: Payload) {
     throw new Error("Method not implented")
   }
-  verify(token) {
+  verify(token: string) {
     throw new Error("Method no implemented")
   }
 }
@@ -20,7 +24,7 @@ class JWTToken extends Token {
       process.env.JWT_SECRET || "f645182c36ef0b9f86aede5a5c7b1eeb0ec7ccd3"
   }
 
-  generate(payload: any) {
+  generate(payload: Payload) {
     const expiresIn = process.env.JWT_EXPIRES_IN || "24h"
     return (
       this.jwt.sign(payload, this.secretKey),

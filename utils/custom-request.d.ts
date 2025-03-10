@@ -1,4 +1,4 @@
-import { UserDocument } from "../models/mariadb/user.ts"
+import { UserDocument } from "../interfaces"
 
 declare global {
   namespace Express {
