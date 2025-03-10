@@ -7,7 +7,7 @@
   "scripts": {
     "lint": "eslint './**/*.{js,ts}' --fix",
     "start": "node dist/server.js",
-    "dev": "tsx watch server.ts",
+    "dev": "tsx watch ./src/server.ts",
     "build": "tsc"
   },
   "dependencies": {
