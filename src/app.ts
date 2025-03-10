@@ -3,7 +3,6 @@ import path from "path"
 import { fileURLToPath } from "url"
 
 // Configs
-import bodyParser from "body-parser"
 import cors from "cors"
 import middleware from "./utils/middleware"
 
@@ -38,8 +37,8 @@ swagger(app)
 const API_VERSION = "/api/v1"
 
 app.use(cors({ credentials: true, origin: true }))
-app.use(bodyParser.json())
-app.use(bodyParser.urlencoded({ extended: true }))
+app.use(express.json())
+app.use(express.urlencoded({ extended: true }))
 app.disable("x-powered-by")
 
 const __filename = fileURLToPath(import.meta.url)
