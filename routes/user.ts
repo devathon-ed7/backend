@@ -1,9 +1,8 @@
 import Router from "express"
 import { UserController } from "../controllers/user"
-import { UserModelInterface } from "../models/mariadb/user"
 import { validatorHandler } from "../utils/validatorHandler"
 import userSchemas from "../schemas/user"
-import { DetailsModelInterface } from "../models/mariadb/details"
+import { DetailsModelInterface, UserModelInterface } from "../interfaces"
 
 interface CreateUserRouterProps {
   userModel: UserModelInterface

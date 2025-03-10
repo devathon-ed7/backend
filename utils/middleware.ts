@@ -1,4 +1,4 @@
-import User, { UserDocument } from "../models/mariadb/user"
+import User from "../models/mariadb/user"
 import logger from "./logger"
 import { NextFunction, Request, Response } from "express"
 import "./custom-request.d.ts"
@@ -7,6 +7,7 @@ import { errorHandler, boomErrorHandler } from "./errorHandler"
 import multer from "multer"
 import { v4 as uuid } from "uuid"
 import JWTToken from "./JWTToken"
+import { UserDocument } from "../interfaces"
 
 const jwtToken = new JWTToken()
 

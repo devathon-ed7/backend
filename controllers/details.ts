@@ -46,10 +46,8 @@ export class DetailsController {
   create = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const {
-        name,
         description,
         notes,
-        email,
         user_account_id,
         role_id
       }: CreateUserDetailsType = req.body
@@ -73,10 +71,8 @@ export class DetailsController {
       }
 
       const data: CreateUserDetailsType = {
-        name,
         description,
         notes,
-        email,
         user_account_id,
         profile_filename: file ? getFileUrl(req, file) : null,
         role_id
@@ -92,13 +88,7 @@ export class DetailsController {
   update = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const id = parseInt(req.params.id)
-      const {
-        name,
-        description,
-        notes,
-        email,
-        role_id
-      }: UpdateUserDetailsType = req.body
+      const { description, notes, role_id }: UpdateUserDetailsType = req.body
       //image
       const file = req.file
 
@@ -112,10 +102,8 @@ export class DetailsController {
 
       const data = {
         id: id,
-        name,
         description,
         notes,
-        email,
         role_id,
         profile_filename: file ? getFileUrl(req, file) : null
       }

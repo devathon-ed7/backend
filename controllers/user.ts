@@ -102,14 +102,12 @@ export class UserController {
     next: NextFunction
   ): Promise<void> => {
     try {
-      // Get the user details from the request body
       const { user } = req.body
-      // Get the file from the request
       const file = req.file
       const profileFilename = file ? getFileUrl(req, file) : null
-      // Create the user
+
       const createdUser = await this.createUser(user)
-      // Create the user details
+
       await this.createUserDetails(
         createdUser,
         user.user_details,
@@ -144,7 +142,6 @@ export class UserController {
       const profileFilename = file ? getFileUrl(req, file) : null
 
       const db_user = await this.validateUserId(userId)
-      await this.checkUsernameConflict(user.username, userId)
 
       const updatedUser = await this.updateUser(db_user, user, userId)
 
@@ -164,30 +161,12 @@ export class UserController {
     }
   }
 
-  /**
-   *  Check if the username already exists
-   * @param username
-   */
-  private checkIfUsernameExists = async (username: string): Promise<void> => {
-    const existingUser = await this.userModel.getByUsername(username)
+  private checkIfEmailExists = async (email: string): Promise<boolean> => {
+    const existingUser = await this.userModel.getByEmail(email)
     if (existingUser) {
-      throw boom.conflict("Username is already taken")
+      return true
     }
-  }
-
-  /**
-   *  Check if the username already exists in update methods
-   * @param username
-   * @param userId
-   */
-  private async checkUsernameConflict(
-    username: string,
-    userId: number
-  ): Promise<void> {
-    const existingUser = await this.userModel.getByUsername(username)
-    if (existingUser && existingUser.id !== userId) {
-      throw boom.conflict("Username is already taken")
-    }
+    return false
   }
 
   /**
@@ -196,12 +175,16 @@ export class UserController {
    * @returns UserDocument
    */
   private async createUser(userPayload: CreateUserType): Promise<UserDocument> {
-    await this.checkIfUsernameExists(userPayload.username)
+    const emailExists = await this.checkIfEmailExists(userPayload.email)
+    if (emailExists) {
+      throw boom.conflict("User could not be created")
+    }
     const hashedPassword = await hashPassword(userPayload.password)
 
     const createdUser = await this.userModel.create({
-      username: userPayload.username,
-      password: hashedPassword
+      email: userPayload.email,
+      password: hashedPassword,
+      full_name: userPayload.full_name
     })
 
     if (!createdUser) {
@@ -260,9 +243,7 @@ export class UserController {
         role_id: userDetailsPayload.role_id
           ? parseInt(userDetailsPayload.role_id.toString(), 10)
           : null,
-        profile_filename: profileFilename,
-        email: userDetailsPayload.email || null,
-        name: userDetailsPayload.name || null
+        profile_filename: profileFilename
       }
     } else {
       return {
@@ -270,17 +251,11 @@ export class UserController {
         notes: null,
         user_account_id: user.id,
         role_id: null,
-        profile_filename: profileFilename || null,
-        email: null,
-        name: null
+        profile_filename: profileFilename || null
       }
     }
   }
 
-  /**
-   *  Validate the user id
-   * @param userId
-   */
   private async validateUserId(userId: number): Promise<UserDocument> {
     return checkIfExists(this.userModel, userId, "User")
   }
@@ -299,7 +274,8 @@ export class UserController {
   ): Promise<UserDocument> {
     const data = {
       id: userId,
-      username: user.username || db_user.username,
+      email: user.email || db_user.email,
+      full_name: user.full_name || db_user.full_name,
       password: user.password
         ? await hashPassword(user.password)
         : db_user.password
@@ -390,9 +366,7 @@ export class UserController {
       description: userDetails.description || details.description,
       notes: userDetails.notes || details.notes,
       user_account_id: details.user_account_id,
-      profile_filename: profileFilename || details.profile_filename,
-      email: userDetails.email || details.email,
-      name: userDetails.name || details.name
+      profile_filename: profileFilename || details.profile_filename
     }
   }
 }

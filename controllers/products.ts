@@ -8,7 +8,7 @@ import {
 } from "../interfaces"
 import { Request, Response, NextFunction } from "express"
 import boom from "@hapi/boom"
-import { getFilesUrl, getFileUrl } from "../utils/imageUrl"
+import { getFileUrl } from "../utils/imageUrl"
 import { checkIfExists } from "../utils/modelUtils"
 import {
   deleteEntity,
@@ -177,7 +177,7 @@ export class ProductController {
    */
   private createProduct = async (
     product: productRequest,
-    images: string[]
+    images: string | null
   ): Promise<ProductDocument> => {
     const data = await this.buildProductData(product, images)
     try {
@@ -194,7 +194,7 @@ export class ProductController {
    */
   private buildProductData = async (
     product: productRequest,
-    images: string[]
+    images: string | null
   ): Promise<CreateProductType> => {
     const data: CreateProductType = {
       name: product.name,
@@ -220,7 +220,7 @@ export class ProductController {
   private async updateProduct(
     product: productRequest,
     db_product: ProductDocument,
-    images: string[]
+    images: string | null
   ): Promise<ProductDocument> {
     const data = this.prepareUpdateProductData(product, db_product, images)
 
@@ -239,7 +239,7 @@ export class ProductController {
   private prepareUpdateProductData = (
     product: productRequest,
     db_product: ProductDocument,
-    images: string[]
+    images: string | null
   ): UpdateProductType => {
     const data: UpdateProductType = {
       id: db_product.id,
