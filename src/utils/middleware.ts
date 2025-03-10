@@ -1,58 +1,57 @@
-import User from "../models/mariadb/user"
-import logger from "./logger"
-import { NextFunction, Request, Response } from "express"
-import "./custom-request.d.ts"
-import { createCustomError } from "./customError"
-import { errorHandler, boomErrorHandler } from "./errorHandler"
-import multer from "multer"
-import { v4 as uuid } from "uuid"
-import JWTToken from "./JWTToken"
-import { UserDocument } from "../interfaces"
+import User from "../models/mariadb/user";
+import logger from "./logger";
+import { NextFunction, Request, Response } from "express";
+import { createCustomError } from "./customError";
+import { errorHandler, boomErrorHandler } from "./errorHandler";
+import multer from "multer";
+import { v4 as uuid } from "uuid";
+import JWTToken from "./JWTToken";
+import { UserDocument } from "../interfaces";
 
-const jwtToken = new JWTToken()
+const jwtToken = new JWTToken();
 
 export const HTTP_STATUS = {
   BAD_REQUEST: 400,
   UNAUTHORIZED: 401,
   NOT_FOUND: 404,
   INTERNAL_SERVER_ERROR: 500
-}
+};
 
 const requestLogger = (
   request: Request,
   _response: Response,
   next: NextFunction
 ) => {
-  logger.info("Method:", request.method)
-  logger.info("Path:  ", request.path)
-  logger.info("Body:  ", request.body)
-  logger.info("---")
-  next()
-}
+  logger.info("Method:", request.method);
+  logger.info("Path:  ", request.path);
+  logger.info("Body:  ", request.body);
+  logger.info("---");
+  next();
+};
 
 const unknownEndpoint = (_request: Request, response: Response) => {
   response.status(404).render("error", {
     message: "Error: Unkown endpoint",
     error: { status: 404, stack: "" }
-  })
-}
+  });
+};
 
 const getTokenFrom = (request: Request): string | null => {
-  const authorization = request.get("authorization")
+  const authorization = request.get("authorization");
   if (authorization && authorization.toLowerCase().startsWith("bearer ")) {
-    return authorization.substring(7)
+    return authorization.substring(7);
   }
-  return null
-}
+  return null;
+};
 
 const tokenExtractor = (
   request: Request,
   response: Response,
   next: NextFunction
 ) => {
-  request.token = getTokenFrom(request)
-  next()
-}
+  request.token = getTokenFrom(request);
+  next();
+};
 
 const userExtractor = async (
   request: Request,
@@ -60,27 +59,27 @@ const userExtractor = async (
   next: NextFunction
 ) => {
   try {
-    const token = getTokenFrom(request)
+    const token = getTokenFrom(request);
 
     if (!token) {
-      throw createCustomError("token missing or invalid", "JsonWebTokenError")
+      throw createCustomError("token missing or invalid", "JsonWebTokenError");
     }
 
-    const decodedToken = jwtToken.verify(token)
+    const decodedToken = jwtToken.verify(token);
 
     if (typeof decodedToken === "string") {
-      throw createCustomError("token invalid", "JsonWebTokenError")
+      throw createCustomError("token invalid", "JsonWebTokenError");
     }
     if (!decodedToken.id) {
-      throw createCustomError("token invalid", "JsonWebTokenError")
+      throw createCustomError("token invalid", "JsonWebTokenError");
     }
-    request.user = (await User.getById(decodedToken.id)) as UserDocument
+    request.user = (await User.getById(decodedToken.id)) as UserDocument;
 
-    next()
+    next();
   } catch (error) {
-    next(error)
+    next(error);
   }
-}
+};
 
 export const omitFields = (
   user: UserDocument,
@@ -89,32 +88,32 @@ export const omitFields = (
   return Object.fromEntries(
     Object.entries(user).map(([key, value]) => {
       if (keys.includes(key)) {
-        return [key, ""]
+        return [key, ""];
       }
-      return [key, value]
+      return [key, value];
     })
-  )
-}
+  );
+};
 
 export const generateAccessToken = (user: UserDocument) => {
-  return jwtToken.generate({ id: user.id })
-}
+  return jwtToken.generate({ id: user.id });
+};
 
 interface RequestStorage extends Request {
-  filename: string
-  filenames: string[]
+  filename: string;
+  filenames: string[];
 }
 const storage = multer.diskStorage({
   destination: "./build/imgs",
   filename: (req: RequestStorage, file, cb) => {
-    const name = uuid().toString()
-    const ext = file.originalname.split(".").pop()
-    req.filename = name
-    cb(null, name + "." + ext)
+    const name = uuid().toString();
+    const ext = file.originalname.split(".").pop();
+    req.filename = name;
+    cb(null, name + "." + ext);
   }
-})
+});
 
-export const upload = multer({ storage })
+export const upload = multer({ storage });
 
 const middleware = {
   requestLogger,
@@ -124,6 +123,6 @@ const middleware = {
   tokenExtractor,
   userExtractor,
   upload
-}
+};
 
-export default middleware
+export default middleware;
