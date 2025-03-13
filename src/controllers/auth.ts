@@ -10,12 +10,10 @@ import axios, { AxiosResponse } from "axios";
 
 dotenv.config();
 
-const TIME_OUT = 5000;
 //github
 const clientId = process.env.CLIENT_ID;
 const clientSecret = process.env.CLIENT_SECRET;
 const githubApiUrl = process.env.GITHUB_API_URL;
-const githubUrlUser = process.env.GITHUB_URL_USER;
 const frontendUrl = process.env.FRONTEND_URL;
 //google
 const googleClientId: string = process.env.GOOGLE_CLIENT_ID as string;
