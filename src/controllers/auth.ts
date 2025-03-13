@@ -1,35 +1,33 @@
-import { Request, Response, NextFunction } from "express"
-import { UserModelInterface } from "../interfaces"
-import { generateAccessToken, omitFields } from "../utils/middleware"
-import boom from "@hapi/boom"
-import { hashPassword, verifyPassword } from "../utils/password-utils"
+import { Request, Response, NextFunction } from "express";
+import { UserModelInterface } from "../interfaces";
+import { generateAccessToken, omitFields } from "../utils/middleware";
+import boom from "@hapi/boom";
+import { hashPassword, verifyPassword } from "../utils/password-utils";
 
-import dotenv from "dotenv"
-import logger from "../utils/logger"
-import axios, { AxiosResponse } from "axios"
+import dotenv from "dotenv";
+import logger from "../utils/logger";
+import axios, { AxiosResponse } from "axios";
 
-dotenv.config()
+dotenv.config();
 
-const TIME_OUT = 5000
+const TIME_OUT = 5000;
 //github
-const clientId = process.env.CLIENT_ID
-const clientSecret = process.env.CLIENT_SECRET
-const githubApiUrl = process.env.GITHUB_API_URL
-const githubUrlUser = process.env.GITHUB_URL_USER
-const frontendUrl = process.env.FRONTEND_URL
+const clientId = process.env.CLIENT_ID;
+const clientSecret = process.env.CLIENT_SECRET;
+const githubApiUrl = process.env.GITHUB_API_URL;
+const githubUrlUser = process.env.GITHUB_URL_USER;
+const frontendUrl = process.env.FRONTEND_URL;
 //google
-const googleClientId: string = process.env.GOOGLE_CLIENT_ID as string
-const googleClientSecret: string = process.env.GOOGLE_CLIENT_SECRET as string
-const googleApiUrl: string = process.env.GOOGLE_API_URL as string
-const googleApiUser: string = process.env.GOOGLE_API_USER as string
-const googleRedirectUri: string = process.env.GOOGLE_REDIRECT_URI as string
-
+const googleClientId: string = process.env.GOOGLE_CLIENT_ID as string;
+const googleClientSecret: string = process.env.GOOGLE_CLIENT_SECRET as string;
+const googleApiUrl: string = process.env.GOOGLE_API_URL as string;
+const googleRedirectUri: string = process.env.GOOGLE_REDIRECT_URI as string;
 
 export class AuthController {
-  private userModel: UserModelInterface
+  private userModel: UserModelInterface;
 
   constructor({ userModel }: { userModel: UserModelInterface }) {
-    this.userModel = userModel
+    this.userModel = userModel;
   }
 
   login = async (
@@ -38,33 +36,29 @@ export class AuthController {
     next: NextFunction
   ): Promise<void> => {
     try {
-      const { email, password } = request.body
+      const { email, password } = request.body;
       if (!email || !password) {
-        throw boom.badRequest("All fields are necessary")
+        throw boom.badRequest("All fields are necessary");
       }
 
-      const user = await this.userModel.getByEmail(email)
+      const user = await this.userModel.getByEmail(email);
 
       if (!user) {
-        throw boom.notFound("Error wrong email or password")
-
+        throw boom.notFound("Error wrong email or password");
       }
 
-      const isPasswordCorrect = await verifyPassword(password, user.password)
+      const isPasswordCorrect = await verifyPassword(password, user.password);
       if (!isPasswordCorrect) {
-
-        throw boom.unauthorized("Error wrong email or password")
-
+        throw boom.unauthorized("Error wrong email or password");
       }
 
-      const token = generateAccessToken(user)
-      const userWithoutPassword = omitFields(user, ["password"])
-      response.status(200).json({ user: userWithoutPassword, token })
+      const token = generateAccessToken(user);
+      const userWithoutPassword = omitFields(user, ["password"]);
+      response.status(200).json({ user: userWithoutPassword, token });
     } catch (error) {
-      next(error)
+      next(error);
     }
-  }
-
+  };
 
   register = async (
     request: Request,
@@ -72,59 +66,30 @@ export class AuthController {
     next: NextFunction
   ): Promise<void> => {
     try {
-      const { fullName, password, email } = request.body
+      const { fullName, password, email } = request.body;
       if (!fullName || !password || !email) {
-        throw boom.badRequest("All fields are necessary")
+        throw boom.badRequest("All fields are necessary");
       }
 
-      const user = await this.userModel.getByEmail(email)
+      const user = await this.userModel.getByEmail(email);
 
       if (user) {
-        throw boom.badRequest("email or password wrong")
+        throw boom.badRequest("email or password wrong");
       }
-      const passwordHash = await hashPassword(password)
+      const passwordHash = await hashPassword(password);
       const newUser = await this.userModel.create({
         full_name: fullName,
         password: passwordHash,
         email
-      })
+      });
 
-      const token = generateAccessToken(newUser)
-      const userWithoutPassword = omitFields(newUser, ["password"])
-      response.status(201).json({ user: userWithoutPassword, token })
+      const token = generateAccessToken(newUser);
+      const userWithoutPassword = omitFields(newUser, ["password"]);
+      response.status(201).json({ user: userWithoutPassword, token });
     } catch (error) {
-      next(error)
+      next(error);
     }
-  }
-
-
-  getGithubUser = async (
-    request: Request,
-    response: Response,
-    next: NextFunction
-  ): Promise<void> => {
-    try {
-      const token = request.headers["authorization"]
-
-      if (!token) {
-        throw boom.unauthorized("Authorization token is missing")
-      }
-
-      const result = await axios({
-        method: "GET",
-        url: githubUrlUser,
-        headers: {
-          Authorization: token
-        },
-        timeout: TIME_OUT
-      })
-
-      response.status(200).send(result.data)
-    } catch (error: unknown) {
-      logger.error(`Error occurred: ${error}`)
-      next(error)
-    }
-  }
+  };
 
   callbackGithub = async (
     request: Request,
@@ -132,31 +97,47 @@ export class AuthController {
     next: NextFunction
   ): Promise<void> => {
     try {
-      const code = request.query.code
+      const code = request.query.code;
 
       if (!code) {
-        throw boom.badRequest("Code is missing")
+        throw boom.badRequest("Code is missing");
       }
 
-      const result: AxiosResponse<{ access_token: string }> = await axios({
-        method: "POST",
+      const tokenResponse: AxiosResponse<{ access_token: string }> =
+        await axios({
+          method: "POST",
 
-        url: `${githubApiUrl}?client_id=${clientId}&client_secret=${clientSecret}&code=${code}`,
+          url: `${githubApiUrl}?client_id=${clientId}&client_secret=${clientSecret}&code=${code}`,
 
+          headers: {
+            Accept: "application/json"
+          }
+        });
+
+      const accessToken = tokenResponse.data.access_token;
+
+      const userResponse: AxiosResponse = await axios({
+        method: "GET",
+        url: "https://api.github.com/user",
         headers: {
-          Accept: "application/json"
+          Authorization: `Bearer ${accessToken}`
         }
-      })
+      });
+
+      const userInfo = userResponse.data;
 
       response.redirect(
-        `${frontendUrl}?access_token=${result.data.access_token}`
-      )
+        `${frontendUrl}?access_token=${accessToken}
+        &name=${encodeURIComponent(userInfo.name)}
+        &email=${encodeURIComponent(userInfo.email)} 
+        &picture=${encodeURIComponent(userInfo.avatar_url)}
+        `
+      );
     } catch (error: unknown) {
-      logger.error(`Error occurred: ${error}`)
-      next(error)
+      logger.error(`Error occurred: ${error}`);
+      next(error);
     }
-  }
-
+  };
 
   callbackGoogle = async (
     request: Request,
@@ -164,34 +145,56 @@ export class AuthController {
     next: NextFunction
   ): Promise<void> => {
     try {
-      const code: string = request.query.code as string
+      const code: string = request.query.code as string;
 
       if (!code) {
-        throw boom.badRequest("Code is missing")
+        throw boom.badRequest("Code is missing");
       }
 
-      const tokenUrl = `${googleApiUrl}?client_id=${googleClientId}&client_secret=${googleClientSecret}&code=${code}&redirect_uri=${googleRedirectUri}&grant_type=authorization_code`
+      const data = {
+        code,
+        client_id: googleClientId,
+        client_secret: googleClientSecret,
+        redirect_uri: googleRedirectUri,
+        grant_type: "authorization_code" as string
+      };
 
-      const result: AxiosResponse<{ access_token: string }> = await axios({
+      const result: AxiosResponse = await axios({
         method: "POST",
-        url: tokenUrl,
+        url: googleApiUrl,
+        data: data,
         headers: {
           Accept: "application/json"
         }
-      })
+      });
+
+      const accessToken = result.data.access_token;
+
+      const userInfoResponse: AxiosResponse = await axios({
+        method: "GET",
+        url: "https://www.googleapis.com/oauth2/v3/userinfo",
+        headers: {
+          Authorization: `Bearer ${accessToken}`
+        }
+      });
+
+      const userInfo = userInfoResponse.data;
 
       response.redirect(
-        `${frontendUrl}?access_token=${result.data.access_token}`
-      )
+        `${frontendUrl}?access_token=${accessToken}
+        &name=${encodeURIComponent(userInfo.name)}
+        &email=${encodeURIComponent(userInfo.email)} 
+        &picture=${encodeURIComponent(userInfo.picture)}
+        `
+      );
     } catch (error: unknown) {
       if (axios.isAxiosError(error)) {
-        logger.error(`Axios error: ${error.response?.data}`)
-        logger.error(`Status code: ${error.response?.status}`)
+        logger.error(`Axios error: ${error.response?.data}`);
+        logger.error(`Status code: ${error.response?.status}`);
       } else {
-        logger.error(`Error occurred: ${error}`)
+        logger.error(`Error occurred: ${error}`);
       }
-      next(error)
+      next(error);
     }
-  }
-
+  };
 }
