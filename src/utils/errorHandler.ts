@@ -1,7 +1,13 @@
-import { Request, Response, NextFunction } from "express"
-import logger from "./logger"
-import boom from "@hapi/boom"
-import { HTTP_STATUS } from "./middleware"
+import { Request, Response, NextFunction } from "express";
+import logger from "./logger";
+import boom from "@hapi/boom";
+
+const HTTP_STATUS = {
+  BAD_REQUEST: 400,
+  UNAUTHORIZED: 401,
+  NOT_FOUND: 404,
+  INTERNAL_SERVER_ERROR: 500
+};
 
 export const boomErrorHandler = (
   error: unknown,
@@ -10,12 +16,12 @@ export const boomErrorHandler = (
   next: NextFunction
 ): void => {
   if (boom.isBoom(error)) {
-    const { output } = error as boom.Boom
-    response.status(output.statusCode).json(output.payload)
+    const { output } = error as boom.Boom;
+    response.status(output.statusCode).json(output.payload);
   } else {
-    next(error)
+    next(error);
   }
-}
+};
 
 // Función para manejar errores específicos
 const handleSpecificError = (error: Error, response: Response) => {
@@ -23,29 +29,29 @@ const handleSpecificError = (error: Error, response: Response) => {
     case "CastError":
       return response
         .status(HTTP_STATUS.BAD_REQUEST)
-        .send({ error: "malformatted id" })
+        .send({ error: "malformatted id" });
     case "ValidationError":
       return response
         .status(HTTP_STATUS.BAD_REQUEST)
-        .json({ error: error.message })
+        .json({ error: error.message });
     case "JsonWebTokenError":
     case "TokenExpiredError":
       return response.status(HTTP_STATUS.UNAUTHORIZED).json({
         error:
           error.name === "TokenExpiredError" ? "token expired" : error.message
-      })
+      });
     case "BadRequest":
     case "Unauthorized":
     case "NotFound":
       return response
         .status(HTTP_STATUS.BAD_REQUEST)
-        .json({ error: error.message })
+        .json({ error: error.message });
     default:
       return response.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({
         error: "Internal Server Error"
-      })
+      });
   }
-}
+};
 
 export const errorHandler = (
   error: Error,
@@ -53,7 +59,7 @@ export const errorHandler = (
   response: Response,
   next: NextFunction
 ) => {
-  logger.error("Middleware: ErrorHandler : ", error.message, error.name)
-  handleSpecificError(error, response)
-  next(error) // Mueve el next fuera del switch
-}
+  logger.error("Middleware: ErrorHandler : ", error.message, error.name);
+  handleSpecificError(error, response);
+  next(error); // Mueve el next fuera del switch
+};

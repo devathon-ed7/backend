@@ -1,10 +1,9 @@
-import { NextFunction, Request, Response } from "express"
-import { hashPassword } from "../utils/password-utils"
-import boom from "@hapi/boom"
-import { omitFields } from "../utils/middleware"
-import { getFileUrl } from "../utils/imageUrl"
-import { numberRequest, SortOder, stringRequest } from "../interfaces"
-import { checkIfExists } from "../utils/modelUtils"
+import { NextFunction, Request, Response } from "express";
+import { hashPassword } from "../utils/password-utils";
+import boom from "@hapi/boom";
+import { getFileUrl } from "../utils/imageUrl";
+import { numberRequest, SortOder, stringRequest } from "../interfaces";
+import { checkIfExists, omitFields } from "../utils/modelUtils";
 import {
   CreateUserDetailsType,
   CreateUserType,
@@ -13,47 +12,47 @@ import {
   UserDetailsDocument,
   UserDocument,
   UserModelInterface
-} from "../interfaces"
-import { deleteEntity } from "../utils/controllerUtils"
+} from "../interfaces";
+import { deleteEntity } from "../utils/controllerUtils";
 
 interface userDetailsRequest {
-  id: numberRequest
-  description: stringRequest
-  notes: stringRequest
-  role_id: numberRequest
-  email: stringRequest
-  name: stringRequest
-  user_account_id: numberRequest
-  profile_filename: stringRequest
+  id: numberRequest;
+  description: stringRequest;
+  notes: stringRequest;
+  role_id: numberRequest;
+  email: stringRequest;
+  name: stringRequest;
+  user_account_id: numberRequest;
+  profile_filename: stringRequest;
 }
 
 export class UserController {
-  private userModel: UserModelInterface
-  private detailsModel: DetailsModelInterface
+  private userModel: UserModelInterface;
+  private detailsModel: DetailsModelInterface;
 
   constructor({
     userModel,
     detailsModel
   }: {
-    userModel: UserModelInterface
-    detailsModel: DetailsModelInterface
+    userModel: UserModelInterface;
+    detailsModel: DetailsModelInterface;
   }) {
-    this.userModel = userModel
-    this.detailsModel = detailsModel
+    this.userModel = userModel;
+    this.detailsModel = detailsModel;
   }
 
   getAll = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const page = parseInt(req.query.page as string, 10) || 1
-      const limit = parseInt(req.query.limit as string, 10) || 10
-      const sortBy = (req.query.sortBy as string) || "id"
-      const order = (req.query.order as SortOder) || "asc"
+      const page = parseInt(req.query.page as string, 10) || 1;
+      const limit = parseInt(req.query.limit as string, 10) || 10;
+      const sortBy = (req.query.sortBy as string) || "id";
+      const order = (req.query.order as SortOder) || "asc";
       const [users, totalUsers] = await Promise.all([
         this.userModel.getAll(page, limit, sortBy, order),
         this.userModel.count()
-      ])
+      ]);
 
-      const totalPages = Math.ceil(totalUsers / limit)
+      const totalPages = Math.ceil(totalUsers / limit);
 
       res.status(200).json({
         users,
@@ -64,11 +63,11 @@ export class UserController {
           sortBy,
           order
         }
-      })
+      });
     } catch (error) {
-      next(error)
+      next(error);
     }
-  }
+  };
 
   getById = async (
     req: Request,
@@ -76,25 +75,25 @@ export class UserController {
     next: NextFunction
   ): Promise<void> => {
     try {
-      const userId = parseInt(req.params.id, 10)
+      const userId = parseInt(req.params.id, 10);
 
       if (isNaN(userId)) {
-        throw boom.unauthorized("Invalid user ID")
-        return
+        throw boom.unauthorized("Invalid user ID");
+        return;
       }
 
-      const user = await this.userModel.getById(userId)
+      const user = await this.userModel.getById(userId);
       if (!user) {
-        throw boom.notFound("User not found")
-        return
+        throw boom.notFound("User not found");
+        return;
       }
 
-      const userWithoutPassword = omitFields(user, ["password"])
-      res.status(200).json({ user: userWithoutPassword })
+      const userWithoutPassword = omitFields(user, ["password"]);
+      res.status(200).json({ user: userWithoutPassword });
     } catch (error) {
-      next(error)
+      next(error);
     }
-  }
+  };
 
   create = async (
     req: Request,
@@ -102,32 +101,32 @@ export class UserController {
     next: NextFunction
   ): Promise<void> => {
     try {
-      const { user } = req.body
-      const file = req.file
-      const profileFilename = file ? getFileUrl(req, file) : null
+      const { user } = req.body;
+      const file = req.file;
+      const profileFilename = file ? getFileUrl(req, file) : null;
 
-      const createdUser = await this.createUser(user)
+      const createdUser = await this.createUser(user);
 
       await this.createUserDetails(
         createdUser,
         user.user_details,
         profileFilename
-      )
+      );
 
       // Omit the password from the response
-      const userResponse = omitFields(createdUser, ["password"])
+      const userResponse = omitFields(createdUser, ["password"]);
 
       res.status(201).json({
         message: "User created successfully",
         newUser: userResponse
-      })
+      });
     } catch (error) {
-      next(error)
+      next(error);
     }
-  }
+  };
 
   delete = async (req: Request, res: Response, next: NextFunction) =>
-    deleteEntity(req, res, next, this.userModel, "user")
+    deleteEntity(req, res, next, this.userModel, "user");
 
   update = async (
     req: Request,
@@ -135,39 +134,39 @@ export class UserController {
     next: NextFunction
   ): Promise<void> => {
     try {
-      const userId = parseInt(req.params.id, 10)
-      const { user } = req.body
-      console.log(user)
-      const file = req.file
-      const profileFilename = file ? getFileUrl(req, file) : null
+      const userId = parseInt(req.params.id, 10);
+      const { user } = req.body;
+      console.log(user);
+      const file = req.file;
+      const profileFilename = file ? getFileUrl(req, file) : null;
 
-      const db_user = await this.validateUserId(userId)
+      const db_user = await this.validateUserId(userId);
 
-      const updatedUser = await this.updateUser(db_user, user, userId)
+      const updatedUser = await this.updateUser(db_user, user, userId);
 
       if (user.user_details) {
         await this.handleUserDetails(
           user.user_details,
           db_user,
           profileFilename
-        )
+        );
       }
 
       res
         .status(200)
-        .json({ message: "User updated successfully", user: updatedUser })
+        .json({ message: "User updated successfully", user: updatedUser });
     } catch (error) {
-      next(error)
+      next(error);
     }
-  }
+  };
 
   private checkIfEmailExists = async (email: string): Promise<boolean> => {
-    const existingUser = await this.userModel.getByEmail(email)
+    const existingUser = await this.userModel.getByEmail(email);
     if (existingUser) {
-      return true
+      return true;
     }
-    return false
-  }
+    return false;
+  };
 
   /**
    * Create the user
@@ -175,23 +174,23 @@ export class UserController {
    * @returns UserDocument
    */
   private async createUser(userPayload: CreateUserType): Promise<UserDocument> {
-    const emailExists = await this.checkIfEmailExists(userPayload.email)
+    const emailExists = await this.checkIfEmailExists(userPayload.email);
     if (emailExists) {
-      throw boom.conflict("User could not be created")
+      throw boom.conflict("User could not be created");
     }
-    const hashedPassword = await hashPassword(userPayload.password)
+    const hashedPassword = await hashPassword(userPayload.password);
 
     const createdUser = await this.userModel.create({
       email: userPayload.email,
       password: hashedPassword,
       full_name: userPayload.full_name
-    })
+    });
 
     if (!createdUser) {
-      throw boom.badImplementation("User could not be created")
+      throw boom.badImplementation("User could not be created");
     }
 
-    return createdUser
+    return createdUser;
   }
 
   /**
@@ -207,21 +206,21 @@ export class UserController {
     profileFilename: string | null
   ): Promise<UserDetailsDocument> => {
     if (!user) {
-      throw new Error("User must be defined.")
+      throw new Error("User must be defined.");
     }
 
     const data = this.buildUserDetailsData(
       user,
       userDetailsPayload,
       profileFilename
-    )
+    );
 
     try {
-      return await this.detailsModel.create(data)
+      return await this.detailsModel.create(data);
     } catch (error) {
-      throw boom.badImplementation("Failed to create user details")
+      throw boom.badImplementation("Failed to create user details");
     }
-  }
+  };
 
   /**
    *  Build the data for the user details
@@ -244,7 +243,7 @@ export class UserController {
           ? parseInt(userDetailsPayload.role_id.toString(), 10)
           : null,
         profile_filename: profileFilename
-      }
+      };
     } else {
       return {
         description: null,
@@ -252,12 +251,12 @@ export class UserController {
         user_account_id: user.id,
         role_id: null,
         profile_filename: profileFilename || null
-      }
+      };
     }
   }
 
   private async validateUserId(userId: number): Promise<UserDocument> {
-    return checkIfExists(this.userModel, userId, "User")
+    return checkIfExists(this.userModel, userId, "User");
   }
 
   /**
@@ -279,11 +278,11 @@ export class UserController {
       password: user.password
         ? await hashPassword(user.password)
         : db_user.password
-    }
+    };
     try {
-      return await this.userModel.update(data)
+      return await this.userModel.update(data);
     } catch (error) {
-      throw boom.badImplementation("Failed to update user")
+      throw boom.badImplementation("Failed to update user");
     }
   }
 
@@ -299,16 +298,16 @@ export class UserController {
     profileFilename: string | null
   ): Promise<void> {
     if (!userDetails.id) {
-      throw new Error("User details ID must be provided.")
+      throw new Error("User details ID must be provided.");
     }
 
-    const details_id = parseInt(userDetails.id.toString(), 10)
-    const details = await this.detailsModel.getById(details_id)
+    const details_id = parseInt(userDetails.id.toString(), 10);
+    const details = await this.detailsModel.getById(details_id);
 
     if (!details) {
-      await this.createUserDetails(db_user, userDetails, profileFilename)
+      await this.createUserDetails(db_user, userDetails, profileFilename);
     } else {
-      await this.updateUserDetails(details, userDetails, profileFilename)
+      await this.updateUserDetails(details, userDetails, profileFilename);
     }
   }
 
@@ -322,7 +321,7 @@ export class UserController {
     existingRoleId: number | null,
     newRoleId: number | null
   ): boolean {
-    return existingRoleId !== newRoleId
+    return existingRoleId !== newRoleId;
   }
 
   /**
@@ -336,17 +335,17 @@ export class UserController {
     userDetails: userDetailsRequest,
     profileFilename: string | null
   ) {
-    const existingRoleId = details.role_id
+    const existingRoleId = details.role_id;
     const newRoleId = userDetails.role_id
       ? parseInt(userDetails.role_id.toString(), 10)
-      : null
+      : null;
 
     await this.detailsModel.update({
       ...this.prepareUpdate(details, userDetails, profileFilename),
       role_id: this.hasRoleChanged(existingRoleId, newRoleId)
         ? newRoleId
         : existingRoleId
-    })
+    });
   }
 
   /**
@@ -367,6 +366,6 @@ export class UserController {
       notes: userDetails.notes || details.notes,
       user_account_id: details.user_account_id,
       profile_filename: profileFilename || details.profile_filename
-    }
+    };
   }
 }

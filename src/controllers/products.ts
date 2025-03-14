@@ -5,45 +5,45 @@ import {
   UpdateProductType,
   CategoryModelInterface,
   SupplierModelInterface
-} from "../interfaces"
-import { Request, Response, NextFunction } from "express"
-import boom from "@hapi/boom"
-import { getFileUrl } from "../utils/imageUrl"
-import { checkIfExists } from "../utils/modelUtils"
+} from "../interfaces";
+import { Request, Response, NextFunction } from "express";
+import boom from "@hapi/boom";
+import { getFileUrl } from "../utils/imageUrl";
+import { checkIfExists } from "../utils/modelUtils";
 import {
   deleteEntity,
   getAllEntities,
   getByNumberParam
-} from "../utils/controllerUtils"
+} from "../utils/controllerUtils";
 
 interface productRequest {
-  name: string
-  description: string | null
-  stock: number
-  notes: string | null
-  price: number
-  supplier_id: number
-  category_id: number
-  sold: number
+  name: string;
+  description: string | null;
+  stock: number;
+  notes: string | null;
+  price: number;
+  supplier_id: number;
+  category_id: number;
+  sold: number;
 }
 
 export class ProductController {
-  private productModel: ProductModelInterface
-  private categoryModel: CategoryModelInterface
-  private supplierModel: SupplierModelInterface
+  private productModel: ProductModelInterface;
+  private categoryModel: CategoryModelInterface;
+  private supplierModel: SupplierModelInterface;
 
   constructor({
     productModel,
     categoryModel,
     supplierModel
   }: {
-    productModel: ProductModelInterface
-    categoryModel: CategoryModelInterface
-    supplierModel: SupplierModelInterface
+    productModel: ProductModelInterface;
+    categoryModel: CategoryModelInterface;
+    supplierModel: SupplierModelInterface;
   }) {
-    this.categoryModel = categoryModel
-    this.productModel = productModel
-    this.supplierModel = supplierModel
+    this.categoryModel = categoryModel;
+    this.productModel = productModel;
+    this.supplierModel = supplierModel;
   }
 
   getById = async (req: Request, res: Response, next: NextFunction) =>
@@ -55,65 +55,65 @@ export class ProductController {
       "product",
       "id",
       "number"
-    )
+    );
 
   getByPage = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const page = parseInt(req.params.page)
-      const limit = parseInt(req.query.limit as string) || 16
+      const page = parseInt(req.params.page);
+      const limit = parseInt(req.query.limit as string) || 16;
 
       if (!page || page < 1) {
-        throw boom.badRequest("The number of page is necessary")
+        throw boom.badRequest("The number of page is necessary");
       }
 
-      const skip = (page - 1) * limit
-      const take = limit * page
+      const skip = (page - 1) * limit;
+      const take = limit * page;
 
-      const products = await this.productModel.getByPage({ skip, take })
+      const products = await this.productModel.getByPage({ skip, take });
 
-      res.status(200).json({ products: products })
+      res.status(200).json({ products: products });
     } catch (error) {
-      next(error)
+      next(error);
     }
-  }
+  };
 
   getAll = async (req: Request, res: Response, next: NextFunction) =>
-    await getAllEntities(req, res, next, this.productModel, "products")
+    await getAllEntities(req, res, next, this.productModel, "products");
 
   create = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const { product } = req.body
-      const file = req.file
-      const images = file ? getFileUrl(req, file) : null
+      const { product } = req.body;
+      const file = req.file;
+      const images = file ? getFileUrl(req, file) : null;
       await checkIfExists(
         this.productModel,
         product.category_id as number,
         "Category"
-      )
+      );
       await checkIfExists(
         this.productModel,
         product.supplier_id as number,
         "Supplier"
-      )
+      );
 
-      const createdProduct = await this.createProduct(product, images)
+      const createdProduct = await this.createProduct(product, images);
 
-      res.status(201).json({ product: createdProduct })
+      res.status(201).json({ product: createdProduct });
     } catch (error) {
-      next(error)
+      next(error);
     }
-  }
+  };
 
   delete = async (req: Request, res: Response, next: NextFunction) =>
-    deleteEntity(req, res, next, this.productModel, "product")
+    deleteEntity(req, res, next, this.productModel, "product");
 
   update = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const id = parseInt(req.params.id)
-      const { product } = req.body
-      const file = req.file
-      const images = file ? getFileUrl(req, file) : null
-      const db_product = await checkIfExists(this.productModel, id, "Product")
+      const id = parseInt(req.params.id);
+      const { product } = req.body;
+      const file = req.file;
+      const images = file ? getFileUrl(req, file) : null;
+      const db_product = await checkIfExists(this.productModel, id, "Product");
 
       //await checkIfExists(this.productModel, product.category_id, "Category")
       //await checkIfExists(this.productModel, product.supplier_id, "Supplier")
@@ -122,13 +122,13 @@ export class ProductController {
         product,
         db_product,
         images
-      )
+      );
 
-      res.status(200).json({ product: updatedProduct })
+      res.status(200).json({ product: updatedProduct });
     } catch (error) {
-      next(error)
+      next(error);
     }
-  }
+  };
 
   //  get all products with relations
   getAllWithRelations = async (
@@ -137,12 +137,12 @@ export class ProductController {
     next: NextFunction
   ) => {
     try {
-      const products = await this.productModel.getAllWithRelations()
-      res.status(200).json(products)
+      const products = await this.productModel.getAllWithRelations();
+      res.status(200).json(products);
     } catch (error) {
-      next(error)
+      next(error);
     }
-  }
+  };
 
   // get a product by id with relations
   getByIdWithRelations = async (
@@ -151,23 +151,23 @@ export class ProductController {
     next: NextFunction
   ) => {
     try {
-      const id = parseInt(req.params.id)
+      const id = parseInt(req.params.id);
 
       if (isNaN(id)) {
-        throw boom.notFound("Product id is missing")
+        throw boom.notFound("Product id is missing");
       }
 
-      const product = await this.productModel.getByIdWithRelations(id)
+      const product = await this.productModel.getByIdWithRelations(id);
 
       if (!product) {
-        throw boom.notFound("Product not found")
+        throw boom.notFound("Product not found");
       }
 
-      res.status(200).json(product)
+      res.status(200).json(product);
     } catch (error) {
-      next(error)
+      next(error);
     }
-  }
+  };
 
   /**
    *  Create the product
@@ -179,13 +179,13 @@ export class ProductController {
     product: productRequest,
     images: string | null
   ): Promise<ProductDocument> => {
-    const data = await this.buildProductData(product, images)
+    const data = await this.buildProductData(product, images);
     try {
-      return await this.productModel.create(data)
+      return await this.productModel.create(data);
     } catch (error) {
-      throw boom.badImplementation("Failed to create product")
+      throw boom.badImplementation("Failed to create product");
     }
-  }
+  };
   /**
    *  Build the product data
    * @param product
@@ -203,12 +203,11 @@ export class ProductController {
       notes: product.notes,
       price: product.price,
       supplier_id: product.supplier_id,
-      category_id: product.category_id,
       images: images
-    }
+    };
 
-    return data
-  }
+    return data;
+  };
 
   /**
    *  Prepare the update product data
@@ -222,11 +221,11 @@ export class ProductController {
     db_product: ProductDocument,
     images: string | null
   ): Promise<ProductDocument> {
-    const data = this.prepareUpdateProductData(product, db_product, images)
+    const data = this.prepareUpdateProductData(product, db_product, images);
 
-    const updatedProduct = await this.productModel.update(data)
+    const updatedProduct = await this.productModel.update(data);
 
-    return updatedProduct
+    return updatedProduct;
   }
 
   /**
@@ -248,12 +247,11 @@ export class ProductController {
       stock: Number(product.stock) || db_product.stock,
       notes: product.notes || db_product.notes,
       price: Number(product.price) || db_product.price,
-      category_id: Number(product.category_id) || db_product.category_id,
       supplier_id: Number(product.supplier_id) || db_product.supplier_id,
       sold: Number(product.sold) || db_product.sold,
       images: images || db_product.images
-    }
+    };
 
-    return data
-  }
+    return data;
+  };
 }

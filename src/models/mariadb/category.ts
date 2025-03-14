@@ -1,31 +1,48 @@
-import { PrismaClient } from "@prisma/client"
-import { findMany, findUnique, updateById } from "../../utils/modelUtils"
-import { CreateCategoryType, UpdateCategoryType } from "../../interfaces"
+import { PrismaClient } from "@prisma/client";
+import { findMany, findUnique, updateById } from "../../utils/modelUtils";
+import { CreateCategoryType, UpdateCategoryType } from "../../interfaces";
 
-const prisma = new PrismaClient()
+const prisma = new PrismaClient();
 
 export default class CategoryModel {
-  static getAll = async () => await prisma.category.findMany()
+  static count = async () => await prisma.category.count();
+
+  static getAll = async ({
+    limit,
+    offset,
+    sort
+  }: {
+    limit: number;
+    offset: number;
+    sort: string;
+  }) =>
+    await prisma.category.findMany({
+      skip: offset,
+      take: limit,
+      orderBy: {
+        [sort]: "desc"
+      }
+    });
 
   static getById = async (id: number) =>
-    await findUnique(prisma.category, { id })
+    await findUnique(prisma.category, { id });
 
   static create = async (data: CreateCategoryType) =>
-    await prisma.category.create({ data })
+    await prisma.category.create({ data });
 
   static delete = async (id: number) =>
     await prisma.category.delete({
       where: {
         id
       }
-    })
+    });
 
   static update = async (data: UpdateCategoryType) =>
-    await updateById(prisma.category, data, data.id as number)
+    await updateById(prisma.category, data, data.id as number);
 
   static getByName = async (name: string) =>
-    await findMany(prisma.category, "name", name)
+    await findMany(prisma.category, "name", name);
 
   static getByDescription = async (description: string) =>
-    await findMany(prisma.category, "description", description)
+    await findMany(prisma.category, "description", description);
 }
