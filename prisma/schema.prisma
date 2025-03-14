@@ -27,14 +27,14 @@ model User_details {
   profile_filename String?
   role_id          Int?
   user_account     User_accounts @relation(fields: [user_account_id], references: [id], onDelete: Cascade)
-  role             Roles?        @relation(fields: [role_id], references: [id])
+  role             Role?         @relation(fields: [role_id], references: [id])
 }
 
-model Roles {
-  id           Int              @id @default(autoincrement())
+model Role {
+  id           Int               @id @default(autoincrement())
   name         String
   description  String?
-  permissions  RolePermission[]
+  permissions  Role_permission[]
   user_details User_details[]
 }
 
@@ -47,40 +47,43 @@ model Supplier {
 }
 
 model Category {
-  id          Int       @id @default(autoincrement())
-  name        String
-  description String
-  products    Product[]
+  id             Int        @id @default(autoincrement())
+  name           String
+  description    String?
+  parentCategory Category?  @relation("CategoryToCategory", fields: [categoryId], references: [id])
+  children       Category[] @relation("CategoryToCategory")
+  categoryId     Int?
+  created_at     DateTime   @default(now())
+  updated_at     DateTime   @updatedAt()
+
+  @@index([name])
 }
 
 model Product {
-  id          Int      @id @default(autoincrement())
-  name        String
-  description String?
-  code        String?  @unique
-  stock       Int
-  sold        Int      @default(0)
-  notes       String?
-  price       Int
-  supplier_id Int
-  category_id Int
-  images      String?
-  created_at  DateTime @default(now())
-  updated_at  DateTime @updatedAt()
-  supplier    Supplier @relation(fields: [supplier_id], references: [id])
-
-  category             Category               @relation(fields: [category_id], references: [id])
-  InventoryTransaction InventoryTransaction[]
+  id                    Int                    @id @default(autoincrement())
+  name                  String
+  description           String?
+  code                  String?                @unique
+  stock                 Int
+  sold                  Int                    @default(0)
+  notes                 String?
+  price                 Int
+  supplier_id           Int
+  images                String?
+  created_at            DateTime               @default(now())
+  updated_at            DateTime               @updatedAt()
+  inventory_transaction InventoryTransaction[]
+  supplier              Supplier               @relation(fields: [supplier_id], references: [id])
 }
 
 model Permissions {
-  id    Int              @id @default(autoincrement())
+  id    Int               @id @default(autoincrement())
   name  String
-  roles RolePermission[]
+  roles Role_permission[]
 }
 
-model RolePermission {
-  role          Roles       @relation(fields: [role_id], references: [id])
+model Role_permission {
+  role          Role        @relation(fields: [role_id], references: [id])
   role_id       Int
   permission    Permissions @relation(fields: [permission_id], references: [id])
   permission_id Int

@@ -1,26 +1,26 @@
-import { PrismaClient } from "@prisma/client"
-import { CreateRoleType, UpdateRoleType } from "../../interfaces/roles"
-import { findUnique, updateById } from "../../utils/modelUtils"
+import { PrismaClient } from "@prisma/client";
+import { CreateRoleType, UpdateRoleType } from "../../interfaces/roles";
+import { findUnique, updateById } from "../../utils/modelUtils";
 
-const prisma = new PrismaClient()
+const prisma = new PrismaClient();
 
 export default class RoleModel {
-  static getAll = async () => await prisma.roles.findMany()
+  static getAll = async () => await prisma.role.findMany();
 
-  static getById = async (id: number) => await findUnique(prisma.roles, { id })
+  static getById = async (id: number) => await findUnique(prisma.role, { id });
 
   static create = async (role: CreateRoleType) =>
-    await prisma.roles.create({
+    await prisma.role.create({
       data: role
-    })
+    });
 
   static update = async (role: UpdateRoleType) =>
-    await updateById(prisma.roles, role, role.id as number)
+    await updateById(prisma.role, role, role.id as number);
 
   static delete = async (id: number) =>
-    await prisma.roles.delete({
+    await prisma.role.delete({
       where: {
         id
       }
-    })
+    });
 }

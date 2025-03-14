@@ -1,12 +1,13 @@
 import { Request, Response, NextFunction } from "express";
 import { UserModelInterface } from "../interfaces";
-import { generateAccessToken, omitFields } from "../utils/middleware";
+import { generateAccessToken } from "../utils/middleware";
 import boom from "@hapi/boom";
 import { hashPassword, verifyPassword } from "../utils/password-utils";
 
 import dotenv from "dotenv";
 import logger from "../utils/logger";
 import axios, { AxiosResponse } from "axios";
+import { omitFields } from "../utils/modelUtils";
 
 dotenv.config();
 

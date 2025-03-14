@@ -1,9 +1,8 @@
-import { PrismaClient } from "@prisma/client"
-import { omitFields } from "../../utils/middleware"
-import { CreateUserType, SortOder, UpdateUserType } from "../../interfaces"
-import { findUnique, updateById } from "../../utils/modelUtils"
+import { PrismaClient } from "@prisma/client";
+import { CreateUserType, SortOder, UpdateUserType } from "../../interfaces";
+import { findUnique, omitFields, updateById } from "../../utils/modelUtils";
 
-const prisma = new PrismaClient()
+const prisma = new PrismaClient();
 
 export default class UserModel {
   static getAll = async (
@@ -25,36 +24,36 @@ export default class UserModel {
       orderBy: {
         [sortBy]: order
       }
-    })
+    });
     const usersWithoutPassword = users.map((user) =>
       omitFields(user, ["password"])
-    )
-    return usersWithoutPassword
-  }
+    );
+    return usersWithoutPassword;
+  };
 
   static getById = async (id: number) =>
     await findUnique(
       prisma.user_accounts,
       { id },
       { user_details: { include: { role: true } } }
-    )
+    );
 
   static create = async (user: CreateUserType) =>
     await prisma.user_accounts.create({
       data: user
-    })
+    });
 
   static update = async (user: UpdateUserType) =>
-    await updateById(prisma.user_accounts, user, user.id as number)
+    await updateById(prisma.user_accounts, user, user.id as number);
 
   static delete = async (id: number) =>
     await prisma.user_accounts.delete({
       where: {
         id
       }
-    })
+    });
 
-  static count = async () => await prisma.user_accounts.count()
+  static count = async () => await prisma.user_accounts.count();
 
   static getByEmail = async (email: string) =>
     await prisma.user_accounts.findUnique({
@@ -66,5 +65,5 @@ export default class UserModel {
           }
         }
       }
-    })
+    });
 }

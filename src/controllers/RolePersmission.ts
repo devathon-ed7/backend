@@ -1,25 +1,25 @@
-import { Request, Response, NextFunction } from "express"
+import { Request, Response, NextFunction } from "express";
 import {
-  CreateRolePermissionType,
+  CreateRolepermissionType,
   RolePermissionModelInterface
-} from "../interfaces"
-import boom from "@hapi/boom"
-import rolePermissionSchemas from "../schemas/RolePermission"
-import { getByNumberParam } from "../utils/controllerUtils"
+} from "../interfaces";
+import boom from "@hapi/boom";
+import rolePermissionSchemas from "../schemas/RolePermission";
+import { getByNumberParam } from "../utils/controllerUtils";
 
 interface RolePermissionRequest {
-  role_id: number
-  permission_id: number
-  active: boolean
+  role_id: number;
+  permission_id: number;
+  active: boolean;
 }
 export class RolePersmissionController {
-  private rolePermissionModel: RolePermissionModelInterface
+  private rolePermissionModel: RolePermissionModelInterface;
   constructor({
     rolePermissionModel
   }: {
-    rolePermissionModel: RolePermissionModelInterface
+    rolePermissionModel: RolePermissionModelInterface;
   }) {
-    this.rolePermissionModel = rolePermissionModel
+    this.rolePermissionModel = rolePermissionModel;
   }
 
   create = async (
@@ -28,33 +28,33 @@ export class RolePersmissionController {
     next: NextFunction
   ): Promise<void> => {
     try {
-      const rolePermissions: CreateRolePermissionType[] = req.body
+      const rolePermissions: CreateRolepermissionType[] = req.body;
 
       // Validate the input using the updated schema
-      const { error } = rolePermissionSchemas.create.validate(rolePermissions)
+      const { error } = rolePermissionSchemas.create.validate(rolePermissions);
       if (error) {
-        throw boom.badRequest(error.details[0].message)
+        throw boom.badRequest(error.details[0].message);
       }
 
       const results = await Promise.all(
         rolePermissions.map(async (rolePermission) => {
-          const { role_id, permission_id, active } = rolePermission
-          const newRolePermission: CreateRolePermissionType = {
+          const { role_id, permission_id, active } = rolePermission;
+          const newRolePermission: CreateRolepermissionType = {
             role_id,
             permission_id,
             active
-          }
-          return await this.rolePermissionModel.create(newRolePermission)
+          };
+          return await this.rolePermissionModel.create(newRolePermission);
         })
-      )
+      );
       res.status(201).json({
         message: "Relation RolePermission created successfully",
         permission: results
-      })
+      });
     } catch (error) {
-      next(error)
+      next(error);
     }
-  }
+  };
 
   update = async (
     req: Request,
@@ -63,27 +63,29 @@ export class RolePersmissionController {
   ): Promise<void> => {
     try {
       const rolePermission: RolePermissionRequest[] =
-        req.body["role-permission"]
+        req.body["role-permission"];
 
       const updatePromises = rolePermission.map(async (permission) => {
         const id = {
           role_id: permission.role_id,
           permission_id: permission.permission_id
-        }
+        };
         await this.rolePermissionModel.update(id, {
           role_id: permission.role_id,
           permission_id: permission.permission_id,
           active: permission.active
-        })
-      })
+        });
+      });
 
-      await Promise.all(updatePromises)
+      await Promise.all(updatePromises);
 
-      res.status(200).json({ message: "Role permissions updated successfully" })
+      res
+        .status(200)
+        .json({ message: "Role permissions updated successfully" });
     } catch (error) {
-      next(error)
+      next(error);
     }
-  }
+  };
 
   getPermissionsForRole = async (
     req: Request,
@@ -98,5 +100,5 @@ export class RolePersmissionController {
       "role-permission",
       "role_id",
       "number"
-    )
+    );
 } //end class

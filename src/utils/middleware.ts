@@ -10,13 +10,6 @@ import { UserDocument } from "../interfaces";
 
 const jwtToken = new JWTToken();
 
-export const HTTP_STATUS = {
-  BAD_REQUEST: 400,
-  UNAUTHORIZED: 401,
-  NOT_FOUND: 404,
-  INTERNAL_SERVER_ERROR: 500
-};
-
 const requestLogger = (
   request: Request,
   _response: Response,
@@ -79,20 +72,6 @@ const userExtractor = async (
   } catch (error) {
     next(error);
   }
-};
-
-export const omitFields = (
-  user: UserDocument,
-  keys: string[]
-): Partial<UserDocument> => {
-  return Object.fromEntries(
-    Object.entries(user).map(([key, value]) => {
-      if (keys.includes(key)) {
-        return [key, ""];
-      }
-      return [key, value];
-    })
-  );
 };
 
 export const generateAccessToken = (user: UserDocument) => {
