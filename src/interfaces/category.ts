@@ -1,6 +1,7 @@
 import { Category } from "@prisma/client";
 export interface CategoryModelInterface {
   count: () => Promise<number>;
+  countByParam: (field: string, value: string) => Promise<number>;
   getById: (id: number) => Promise<Category | null>;
   getAll: ({
     limit,
@@ -14,7 +15,7 @@ export interface CategoryModelInterface {
   create: (data: CreateCategoryType) => Promise<Category>;
   delete: (id: number) => Promise<Category>;
   update: (data: UpdateCategoryType) => Promise<Category>;
-  getByName: (name: string) => Promise<Category[]>;
+  getByName: (name: string , limit: number, offset: number, sort: string) => Promise<Category[]>;
   getByDescription: (description: string) => Promise<Category[]>;
 }
 

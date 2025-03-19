@@ -5,7 +5,8 @@ import boom from "@hapi/boom";
 import {
   deleteEntity,
   getByNumberParam,
-  getByStringParam
+  getByStringParam,
+  getByStringParamPaginate
 } from "../utils/controllerUtils";
 
 export class CategoryController {
@@ -58,11 +59,11 @@ export class CategoryController {
     );
 
   getByName = async (req: Request, res: Response, next: NextFunction) =>
-    await getByStringParam(
+    await getByStringParamPaginate(
       req,
       res,
       next,
-      this.categoryModel.getByName,
+      this.categoryModel,
       "categories",
       "name"
     );

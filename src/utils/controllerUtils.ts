@@ -110,3 +110,47 @@ export const getByNumberParam = async (
     next(error)
   }
 }
+
+export const getByStringParamPaginate = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+  model: {  
+    getByName: (params: string, limit: number, offset: number, sort: string) => Promise<unknown[]>
+    countByParam: (field: string, value: string) => Promise<number> 
+  },
+  entityName: string,
+  paramName: string,
+) => {
+  try {
+    
+    const param = validateParam(req, paramName)
+    
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 10;
+    const sort = (req.query.sort as string) || paramName;
+    const offset = (page - 1) * limit;
+
+    const result = await model.getByName(param as string, limit, offset, sort);
+
+    if (!result) {
+      throw boom.notFound(`${entityName} not found`)
+    }
+
+    const totalCategories = await model.countByParam( paramName, param as string);
+    const totalPages = Math.ceil(totalCategories / limit);
+
+    res.status(200).json({ 
+      [entityName]: result,
+      pagination: {
+          totalCategories,
+          totalPages,
+          currentPage: page,
+          limit
+        }
+    })
+  } catch (error) {
+    next(error)
+  }
+}
+
