@@ -1,31 +1,13 @@
 import {
-  CreateProductType,
-  ProductDocument,
   ProductModelInterface,
-  UpdateProductType,
   CategoryModelInterface,
-  SupplierModelInterface
+  SupplierModelInterface,
+  SortOrder
 } from "../interfaces";
 import { Request, Response, NextFunction } from "express";
 import boom from "@hapi/boom";
-import { getFileUrl } from "../utils/imageUrl";
-import { checkIfExists } from "../utils/modelUtils";
-import {
-  deleteEntity,
-  getAllEntities,
-  getByNumberParam
-} from "../utils/controllerUtils";
 
-interface productRequest {
-  name: string;
-  description: string | null;
-  stock: number;
-  notes: string | null;
-  price: number;
-  supplier_id: number;
-  category_id: number;
-  sold: number;
-}
+
 
 export class ProductController {
   private productModel: ProductModelInterface;
@@ -46,16 +28,22 @@ export class ProductController {
     this.supplierModel = supplierModel;
   }
 
-  getById = async (req: Request, res: Response, next: NextFunction) =>
-    await getByNumberParam(
-      req,
-      res,
-      next,
-      this.productModel.getById,
-      "product",
-      "id",
-      "number"
-    );
+  getById = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const id = req.params.id;
+      if (!id) {
+        throw boom.unauthorized("Invalid product ID");
+      }
+      const product = await this.productModel.getById(id);
+      if (!product) {
+        throw boom.notFound("Product not found");
+      }
+      res.status(200).json({ product });
+    } catch (error) {
+      next(error);
+    }
+  }
+
 
   getByPage = async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -77,26 +65,54 @@ export class ProductController {
     }
   };
 
-  getAll = async (req: Request, res: Response, next: NextFunction) =>
-    await getAllEntities(req, res, next, this.productModel, "products");
+  getAll = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const page = parseInt(req.query.page as string) || 1;
+      const limit = parseInt(req.query.limit as string) || 10;
+      const sort = (req.query.sort as string) || "id";
+      const order: SortOrder = (req.query.order as SortOrder) || "asc";
+
+      const [products, totalProducts] = await Promise.all([
+        this.productModel.getAll(page, limit, sort, order),
+        this.productModel.count()
+      ]);
+      const totalPages = Math.ceil(totalProducts / limit);
+      res.status(200).json({
+        products,
+        totalProducts,
+        totalPages,
+        currentPage: page,
+        sort: {
+          sortBy: sort,
+          order
+        }
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
 
   create = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { product } = req.body;
-      const file = req.file;
-      const images = file ? getFileUrl(req, file) : null;
-      await checkIfExists(
-        this.productModel,
-        product.category_id as number,
-        "Category"
-      );
-      await checkIfExists(
-        this.productModel,
-        product.supplier_id as number,
-        "Supplier"
-      );
 
-      const createdProduct = await this.createProduct(product, images);
+      const existingProduct = await this.productModel.getById(product.id);
+      if (existingProduct) {
+        throw boom.badRequest("Product already exists");
+      }
+
+      const existingCategory = await this.categoryModel.getById(product.category_id);
+      if (!existingCategory) {
+        throw boom.notFound("Category not found");
+      }
+
+      const existingSupplier = await this.supplierModel.getById(product.supplier_id);
+      if (!existingSupplier) {
+        throw boom.notFound("Supplier not found");
+      }
+
+      const createdProduct = await this.productModel.create(product);
 
       res.status(201).json({ product: createdProduct });
     } catch (error) {
@@ -104,25 +120,37 @@ export class ProductController {
     }
   };
 
-  delete = async (req: Request, res: Response, next: NextFunction) =>
-    deleteEntity(req, res, next, this.productModel, "product");
+  delete = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const id = req.params.id;
+      if (!id) {
+        throw boom.unauthorized("Invalid product ID");
+      }
+      const existingProduct = await this.productModel.getById(id);
+      if (!existingProduct) {
+        throw boom.notFound("Product not found");
+      }
+      await this.productModel.delete(id);
+      res.status(204).send();
+    } catch (error) {
+      next(error);
+    }
+  }
 
   update = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const id = parseInt(req.params.id);
+      const id = req.params.id;
       const { product } = req.body;
-      const file = req.file;
-      const images = file ? getFileUrl(req, file) : null;
-      const db_product = await checkIfExists(this.productModel, id, "Product");
+
+      const existingProduct = await this.productModel.getById(id);
+      if (!existingProduct) {
+        throw boom.notFound("Product not found");
+      }
 
       //await checkIfExists(this.productModel, product.category_id, "Category")
       //await checkIfExists(this.productModel, product.supplier_id, "Supplier")
 
-      const updatedProduct = await this.updateProduct(
-        product,
-        db_product,
-        images
-      );
+      const updatedProduct = await this.productModel.update(product);
 
       res.status(200).json({ product: updatedProduct });
     } catch (error) {
@@ -130,128 +158,5 @@ export class ProductController {
     }
   };
 
-  //  get all products with relations
-  getAllWithRelations = async (
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ) => {
-    try {
-      const products = await this.productModel.getAllWithRelations();
-      res.status(200).json(products);
-    } catch (error) {
-      next(error);
-    }
-  };
 
-  // get a product by id with relations
-  getByIdWithRelations = async (
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ) => {
-    try {
-      const id = parseInt(req.params.id);
-
-      if (isNaN(id)) {
-        throw boom.notFound("Product id is missing");
-      }
-
-      const product = await this.productModel.getByIdWithRelations(id);
-
-      if (!product) {
-        throw boom.notFound("Product not found");
-      }
-
-      res.status(200).json(product);
-    } catch (error) {
-      next(error);
-    }
-  };
-
-  /**
-   *  Create the product
-   * @param product
-   * @param images
-   * @returns ProductDocument
-   */
-  private createProduct = async (
-    product: productRequest,
-    images: string | null
-  ): Promise<ProductDocument> => {
-    const data = await this.buildProductData(product, images);
-    try {
-      return await this.productModel.create(data);
-    } catch (error) {
-      throw boom.badImplementation("Failed to create product");
-    }
-  };
-  /**
-   *  Build the product data
-   * @param product
-   * @param images
-   * @returns CreateProductType
-   */
-  private buildProductData = async (
-    product: productRequest,
-    images: string | null
-  ): Promise<CreateProductType> => {
-    const data: CreateProductType = {
-      name: product.name,
-      description: product.description,
-      stock: product.stock,
-      notes: product.notes,
-      price: product.price,
-      supplier_id: product.supplier_id,
-      images: images
-    };
-
-    return data;
-  };
-
-  /**
-   *  Prepare the update product data
-   * @param product
-   * @param db_product
-   * @param images
-   * @returns productDocument
-   */
-  private async updateProduct(
-    product: productRequest,
-    db_product: ProductDocument,
-    images: string | null
-  ): Promise<ProductDocument> {
-    const data = this.prepareUpdateProductData(product, db_product, images);
-
-    const updatedProduct = await this.productModel.update(data);
-
-    return updatedProduct;
-  }
-
-  /**
-   *  Prepare the update product data
-   * @param product
-   * @param db_product
-   * @param images
-   * @returns updateProductType
-   */
-  private prepareUpdateProductData = (
-    product: productRequest,
-    db_product: ProductDocument,
-    images: string | null
-  ): UpdateProductType => {
-    const data: UpdateProductType = {
-      id: db_product.id,
-      name: product.name || db_product.name,
-      description: product.description || db_product.description,
-      stock: Number(product.stock) || db_product.stock,
-      notes: product.notes || db_product.notes,
-      price: Number(product.price) || db_product.price,
-      supplier_id: Number(product.supplier_id) || db_product.supplier_id,
-      sold: Number(product.sold) || db_product.sold,
-      images: images || db_product.images
-    };
-
-    return data;
-  };
 }

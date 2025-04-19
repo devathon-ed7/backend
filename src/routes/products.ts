@@ -13,7 +13,7 @@ type CreateProductRouterProps = {
   supplierModel: SupplierModelInterface
 }
 
-export const CreateProductRouter = ({
+export const ProductRouter = ({
   categoryModel,
   productModel,
   supplierModel
@@ -26,8 +26,6 @@ export const CreateProductRouter = ({
   })
 
   productRouter.get("/page/:page/", productController.getByPage)
-  productRouter.get("/relations", productController.getAllWithRelations)
-  productRouter.get("/relations/:id", productController.getByIdWithRelations)
   productRouter.delete("/:id", productController.delete)
   productRouter.put("/:id", productController.update)
   productRouter.get("/:id", productController.getById)

@@ -6,7 +6,7 @@ interface CreateSupplierRouterProps {
   supplierModel: SupplierModelInterface
 }
 
-export const createSupplierRouter = ({
+export const SupplierRouter = ({
   supplierModel
 }: CreateSupplierRouterProps) => {
   const supplierRouter = Router()

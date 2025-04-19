@@ -2,11 +2,6 @@ import { NextFunction, Request, Response } from "express";
 import { CreateCategoryType, UpdateCategoryType } from "../interfaces";
 import { CategoryModelInterface } from "../interfaces";
 import boom from "@hapi/boom";
-import {
-  deleteEntity,
-  getByNumberParam,
-  getByStringParam
-} from "../utils/controllerUtils";
 
 export class CategoryController {
   private categoryModel: CategoryModelInterface;
@@ -46,36 +41,64 @@ export class CategoryController {
     }
   };
 
-  getById = async (req: Request, res: Response, next: NextFunction) =>
-    await getByNumberParam(
-      req,
-      res,
-      next,
-      this.categoryModel.getById,
-      "categories",
-      "id",
-      "number"
-    );
+  getById = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const id = req.params.id;
+      if (!id) {
+        throw boom.unauthorized("Invalid category ID");
+      }
 
-  getByName = async (req: Request, res: Response, next: NextFunction) =>
-    await getByStringParam(
-      req,
-      res,
-      next,
-      this.categoryModel.getByName,
-      "categories",
-      "name"
-    );
+      const category = await this.categoryModel.getById(id);
 
-  getByDescription = async (req: Request, res: Response, next: NextFunction) =>
-    await getByStringParam(
-      req,
-      res,
-      next,
-      this.categoryModel.getByDescription,
-      "categories",
-      "description"
-    );
+      if (!category) {
+        throw boom.notFound("Category not found");
+      }
+
+      res.status(200).json({ category });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+
+  getByName = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const name = req.params.name;
+      if (!name) {
+        throw boom.unauthorized("Invalid category name");
+      }
+
+      const category = await this.categoryModel.getByName(name);
+
+      if (!category) {
+        throw boom.notFound("Category not found");
+      }
+
+      res.status(200).json({ category });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+
+  getByDescription = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const description = req.params.description;
+      if (!description) {
+        throw boom.unauthorized("Invalid category description");
+      }
+
+      const category = await this.categoryModel.getByDescription(description);
+
+      if (!category) {
+        throw boom.notFound("Category not found");
+      }
+
+      res.status(200).json({ category });
+    } catch (error) {
+      next(error);
+    }
+  }
 
   create = async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -100,14 +123,32 @@ export class CategoryController {
     }
   };
 
-  delete = (req: Request, res: Response, next: NextFunction) =>
-    deleteEntity(req, res, next, this.categoryModel, "category");
+  delete = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const id = req.params.id;
+
+      if (!id) {
+        throw boom.unauthorized("Invalid category ID");
+      }
+
+      const category = await this.categoryModel.getById(id);
+
+      if (!category) {
+        throw boom.notFound("Category not found");
+      }
+
+      await this.categoryModel.delete(id);
+      res.status(204).send();
+    } catch (error) {
+      next(error);
+    }
+  }
 
   update = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const id = parseInt(req.params.id, 10);
+      const id = req.params.id;
 
-      if (isNaN(id)) {
+      if (!id) {
         throw boom.unauthorized("Invalid category ID");
       }
 

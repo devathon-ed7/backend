@@ -6,7 +6,7 @@ interface createCategoryRoutesProps {
   categoryModel: CategoryModelInterface
 }
 
-export const createCategoryRoutes = ({
+export const CategoryRoutes = ({
   categoryModel
 }: createCategoryRoutesProps) => {
   const categoryRouter = Router()

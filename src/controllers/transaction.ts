@@ -1,21 +1,7 @@
 import { type NextFunction, type Request, type Response } from "express"
-import { CreateTransactionType, TransactionModelInterface } from "../interfaces"
+import { SortOrder, TransactionModelInterface } from "../interfaces"
 import boom from "@hapi/boom"
-import {
-  deleteEntity,
-  getAllEntities,
-  getByNumberParam,
-  getByStringParam
-} from "../utils/controllerUtils"
 
-interface transactionRequest {
-  product_id: number
-  quantity: number
-  code: string
-  transaction_type: transaction_type
-}
-
-type transaction_type = "in" | "out"
 
 export class TransactionController {
   private transactionModel: TransactionModelInterface
@@ -27,34 +13,72 @@ export class TransactionController {
     this.transactionModel = transactionModel
   }
 
-  getAll = async (_req: Request, res: Response, next: NextFunction) =>
-    await getAllEntities(_req, res, next, this.transactionModel, "transactions")
+  getAll = async (_req: Request, res: Response, next: NextFunction) => {
+    try {
+      const page = parseInt(_req.query.page as string) || 1
+      const limit = parseInt(_req.query.limit as string) || 10
+      const sort = (_req.query.sort as string) || "id"
+      const order: SortOrder = (_req.query.order as SortOrder) || "asc"
+      const [transactions, totalTransactions] = await Promise.all([
+        this.transactionModel.getAll(page, limit, sort, order),
+        this.transactionModel.count()
+      ])
+      const totalPages = Math.ceil(totalTransactions / limit)
+      res.status(200).json({
+        transactions,
+        totalTransactions,
+        totalPages,
+        currentPage: page,
+        sort: {
+          sortBy: sort,
+          order
+        }
+      })
+    } catch (error) {
+      next(error)
+    }
+  }
 
-  getByProductId = async (req: Request, res: Response, next: NextFunction) =>
-    await getByNumberParam(
-      req,
-      res,
-      next,
-      this.transactionModel.getByProductId,
-      "transactions",
-      "product_id",
-      "number"
-    )
+  getByProductId = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const product_id = req.params.product_id
+      if (!product_id) {
+        throw boom.unauthorized("Invalid product ID")
+      }
+      const transactions = await this.transactionModel.getByProductId(product_id)
+      if (!transactions) {
+        throw boom.notFound("Transaction not found")
+      }
+      res.status(200).json({ transactions })
+    } catch (error) {
+      next(error)
+    }
+  }
 
-  getByCode = async (req: Request, res: Response, next: NextFunction) =>
-    await getByStringParam(
-      req,
-      res,
-      next,
-      this.transactionModel.getByCode,
-      "transactions",
-      "code"
-    )
+
+  getByCode = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const code = req.params.code
+      if (!code) {
+        throw boom.unauthorized("Invalid code")
+      }
+      const transactions = await this.transactionModel.getByCode(code)
+      if (!transactions) {
+        throw boom.notFound("Transaction not found")
+      }
+      res.status(200).json({ transactions })
+    } catch (error) {
+      next(error)
+    }
+  }
+
 
   create = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { transaction } = req.body
-      const transactions = await this.createTransaction(transaction)
+
+      const transactions = await this.transactionModel.create(transaction)
+
       res.status(201).json({ transactions: transactions })
     } catch (error) {
       next(error)
@@ -63,54 +87,37 @@ export class TransactionController {
 
   update = async (req: Request, res: Response, next: NextFunction) => {
     try {
+      const id = req.params.id
+      if (!id) {
+        throw boom.unauthorized("Invalid transaction ID")
+      }
       const { transaction } = req.body
-      const transactions = await this.updateTransaction(transaction)
+      if (!transaction || transaction.id !== id) {
+        throw boom.unauthorized("Invalid transaction ID")
+      }
+      const transactions = await this.transactionModel.update(transaction)
       res.status(200).json({ transactions: transactions })
     } catch (error) {
       next(error)
     }
   }
 
-  delete = async (req: Request, res: Response, next: NextFunction) =>
-    deleteEntity(req, res, next, this.transactionModel, "transaction")
-
-  private async createTransaction(transaction: transactionRequest) {
-    const data = await this.buildTransactionData(transaction)
+  delete = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      return await this.transactionModel.create(data)
+      const id = req.params.id
+      if (!id) {
+        throw boom.unauthorized("Invalid transaction ID")
+      }
+      const transactions = await this.transactionModel.getById(id)
+      if (!transactions) {
+        throw boom.notFound("Transaction not found")
+      }
+      await this.transactionModel.delete(id)
+      res.status(204).send()
     } catch (error) {
-      throw boom.badImplementation("Failed to create transaction")
+      next(error)
     }
-  }
-  /**
-   *  Build the transaction data
-   * @param transaction
-   * @returns CreateTransactionType
-   */
-  private buildTransactionData = async (
-    transaction: transactionRequest
-  ): Promise<CreateTransactionType> => {
-    const data: CreateTransactionType = {
-      product_id: transaction.product_id,
-      quantity: transaction.quantity,
-      code: transaction.code,
-      transaction_type: transaction.transaction_type
-    }
-
-    return data
   }
 
-  /**
-   *  Update the transaction
-   * @param transaction
-   * @returns   Promise<InventoryTransaction[]>
-   */
-  private async updateTransaction(transaction: transactionRequest) {
-    const data = await this.buildTransactionData(transaction)
-    try {
-      return await this.transactionModel.update(data)
-    } catch (error) {
-      throw boom.badImplementation("Failed to update transaction")
-    }
-  }
+
 } //end class

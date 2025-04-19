@@ -1,10 +1,10 @@
 // src/utils/custom-request.d.ts
-import { UserDocument } from "../interfaces";
+import { UserDocumentWithoutPassword } from "../interfaces";
 
 declare global {
   namespace Express {
     interface Request {
-      user?: UserDocument;
+      user?: UserDocumentWithoutPassword | null;
       token?: string | null;
     }
   }

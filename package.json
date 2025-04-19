@@ -14,7 +14,7 @@
   },
   "dependencies": {
     "@hapi/boom": "^10.0.1",
-    "@prisma/client": "^5.17.0",
+    "@prisma/client": "^6.6.0",
     "@types/multer": "^1.4.11",
     "@types/uuid": "^10.0.0",
     "axios": "^1.7.9",
@@ -49,7 +49,7 @@
     "eslint": "9.x",
     "eslint-plugin-node": "^11.1.0",
     "globals": "^15.8.0",
-    "prisma": "^5.17.0",
+    "prisma": "^6.6.0",
     "rollup": "^4.35.0",
     "rollup-plugin-copy": "^3.5.0",
     "rollup-plugin-terser": "^7.0.2",

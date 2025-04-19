@@ -1,44 +1,21 @@
 import { NextFunction, Request, Response } from "express";
 import { hashPassword } from "../utils/password-utils";
 import boom from "@hapi/boom";
-import { getFileUrl } from "../utils/imageUrl";
-import { numberRequest, SortOder, stringRequest } from "../interfaces";
-import { checkIfExists, omitFields } from "../utils/modelUtils";
+import { SortOrder } from "../interfaces";
 import {
-  CreateUserDetailsType,
-  CreateUserType,
-  DetailsModelInterface,
-  UpdateUserType,
-  UserDetailsDocument,
-  UserDocument,
   UserModelInterface
 } from "../interfaces";
-import { deleteEntity } from "../utils/controllerUtils";
 
-interface userDetailsRequest {
-  id: numberRequest;
-  description: stringRequest;
-  notes: stringRequest;
-  role_id: numberRequest;
-  email: stringRequest;
-  name: stringRequest;
-  user_account_id: numberRequest;
-  profile_filename: stringRequest;
-}
 
 export class UserController {
   private userModel: UserModelInterface;
-  private detailsModel: DetailsModelInterface;
 
   constructor({
-    userModel,
-    detailsModel
+    userModel
   }: {
     userModel: UserModelInterface;
-    detailsModel: DetailsModelInterface;
   }) {
     this.userModel = userModel;
-    this.detailsModel = detailsModel;
   }
 
   getAll = async (req: Request, res: Response, next: NextFunction) => {
@@ -46,7 +23,7 @@ export class UserController {
       const page = parseInt(req.query.page as string, 10) || 1;
       const limit = parseInt(req.query.limit as string, 10) || 10;
       const sortBy = (req.query.sortBy as string) || "id";
-      const order = (req.query.order as SortOder) || "asc";
+      const order = (req.query.order as SortOrder) || "asc";
       const [users, totalUsers] = await Promise.all([
         this.userModel.getAll(page, limit, sortBy, order),
         this.userModel.count()
@@ -75,21 +52,20 @@ export class UserController {
     next: NextFunction
   ): Promise<void> => {
     try {
-      const userId = parseInt(req.params.id, 10);
+      const userId = req.params.id;
 
-      if (isNaN(userId)) {
+      if (!userId) {
         throw boom.unauthorized("Invalid user ID");
         return;
       }
 
-      const user = await this.userModel.getById(userId);
-      if (!user) {
+      const existingUser = await this.userModel.getById(userId);
+      if (!existingUser) {
         throw boom.notFound("User not found");
         return;
       }
 
-      const userWithoutPassword = omitFields(user, ["password"]);
-      res.status(200).json({ user: userWithoutPassword });
+      res.status(200).json({ user: existingUser });
     } catch (error) {
       next(error);
     }
@@ -101,32 +77,54 @@ export class UserController {
     next: NextFunction
   ): Promise<void> => {
     try {
+      //asuming the image field is only other url to the image 
       const { user } = req.body;
-      const file = req.file;
-      const profileFilename = file ? getFileUrl(req, file) : null;
 
-      const createdUser = await this.createUser(user);
+      const emailExists = await this.checkIfEmailExists(user.email);
+      if (emailExists) {
+        throw boom.conflict("User could not be created");
+      }
 
-      await this.createUserDetails(
-        createdUser,
-        user.user_details,
-        profileFilename
-      );
+      const hashedPassword = await hashPassword(user.password);
 
-      // Omit the password from the response
-      const userResponse = omitFields(createdUser, ["password"]);
+      const createdUser = await this.userModel.create({
+        email: user.email,
+        password: hashedPassword,
+        name: user.name
+      });
+
+      if (!createdUser) {
+        throw boom.badImplementation("User could not be created");
+      }
+
 
       res.status(201).json({
         message: "User created successfully",
-        newUser: userResponse
+        newUser: createdUser
       });
     } catch (error) {
       next(error);
     }
   };
 
-  delete = async (req: Request, res: Response, next: NextFunction) =>
-    deleteEntity(req, res, next, this.userModel, "user");
+  delete = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const id = req.params.id
+      if (!id) {
+        throw boom.badRequest("Invalid ID")
+      }
+
+      const existingUser = await this.userModel.getById(id)
+      if (!existingUser) {
+        throw boom.notFound(`User not found`)
+      }
+
+      await this.userModel.delete(id)
+      res.status(204).send()
+    } catch (error) {
+      next(error)
+    }
+  }
 
   update = async (
     req: Request,
@@ -134,23 +132,17 @@ export class UserController {
     next: NextFunction
   ): Promise<void> => {
     try {
-      const userId = parseInt(req.params.id, 10);
+      const userId = req.params.id;
       const { user } = req.body;
-      console.log(user);
-      const file = req.file;
-      const profileFilename = file ? getFileUrl(req, file) : null;
 
-      const db_user = await this.validateUserId(userId);
-
-      const updatedUser = await this.updateUser(db_user, user, userId);
-
-      if (user.user_details) {
-        await this.handleUserDetails(
-          user.user_details,
-          db_user,
-          profileFilename
-        );
+      const existingUser = await this.userModel.getById(userId);
+      if (!existingUser) {
+        throw boom.notFound("User not found");
+        return;
       }
+      const updatedUser = await this.userModel.update(user);
+
+
 
       res
         .status(200)
@@ -167,205 +159,4 @@ export class UserController {
     }
     return false;
   };
-
-  /**
-   * Create the user
-   * @param userPayload
-   * @returns UserDocument
-   */
-  private async createUser(userPayload: CreateUserType): Promise<UserDocument> {
-    const emailExists = await this.checkIfEmailExists(userPayload.email);
-    if (emailExists) {
-      throw boom.conflict("User could not be created");
-    }
-    const hashedPassword = await hashPassword(userPayload.password);
-
-    const createdUser = await this.userModel.create({
-      email: userPayload.email,
-      password: hashedPassword,
-      full_name: userPayload.full_name
-    });
-
-    if (!createdUser) {
-      throw boom.badImplementation("User could not be created");
-    }
-
-    return createdUser;
-  }
-
-  /**
-   *  Create the user details
-   * @param user
-   * @param userDetailsPayload
-   * @param profileFilename
-   * @returns UserDetailsDocument
-   */
-  private createUserDetails = async (
-    user: UserDocument,
-    userDetailsPayload: userDetailsRequest,
-    profileFilename: string | null
-  ): Promise<UserDetailsDocument> => {
-    if (!user) {
-      throw new Error("User must be defined.");
-    }
-
-    const data = this.buildUserDetailsData(
-      user,
-      userDetailsPayload,
-      profileFilename
-    );
-
-    try {
-      return await this.detailsModel.create(data);
-    } catch (error) {
-      throw boom.badImplementation("Failed to create user details");
-    }
-  };
-
-  /**
-   *  Build the data for the user details
-   * @param user
-   * @param userDetailsPayload
-   * @param profileFilename
-   * @returns CreateUserDetailsType
-   */
-  private buildUserDetailsData(
-    user: UserDocument,
-    userDetailsPayload: userDetailsRequest,
-    profileFilename: string | null
-  ): CreateUserDetailsType {
-    if (userDetailsPayload) {
-      return {
-        description: userDetailsPayload.description || null,
-        notes: userDetailsPayload.notes || null,
-        user_account_id: user.id,
-        role_id: userDetailsPayload.role_id
-          ? parseInt(userDetailsPayload.role_id.toString(), 10)
-          : null,
-        profile_filename: profileFilename
-      };
-    } else {
-      return {
-        description: null,
-        notes: null,
-        user_account_id: user.id,
-        role_id: null,
-        profile_filename: profileFilename || null
-      };
-    }
-  }
-
-  private async validateUserId(userId: number): Promise<UserDocument> {
-    return checkIfExists(this.userModel, userId, "User");
-  }
-
-  /**
-   *  Update the user
-   * @param db_user
-   * @param user
-   * @param userId
-   * @returns
-   */
-  private async updateUser(
-    db_user: UserDocument,
-    user: UpdateUserType,
-    userId: number
-  ): Promise<UserDocument> {
-    const data = {
-      id: userId,
-      email: user.email || db_user.email,
-      full_name: user.full_name || db_user.full_name,
-      password: user.password
-        ? await hashPassword(user.password)
-        : db_user.password
-    };
-    try {
-      return await this.userModel.update(data);
-    } catch (error) {
-      throw boom.badImplementation("Failed to update user");
-    }
-  }
-
-  /**
-   *  Handle the user details
-   * @param userDetails
-   * @param db_user
-   * @param profileFilename
-   */
-  private async handleUserDetails(
-    userDetails: userDetailsRequest,
-    db_user: UserDocument,
-    profileFilename: string | null
-  ): Promise<void> {
-    if (!userDetails.id) {
-      throw new Error("User details ID must be provided.");
-    }
-
-    const details_id = parseInt(userDetails.id.toString(), 10);
-    const details = await this.detailsModel.getById(details_id);
-
-    if (!details) {
-      await this.createUserDetails(db_user, userDetails, profileFilename);
-    } else {
-      await this.updateUserDetails(details, userDetails, profileFilename);
-    }
-  }
-
-  /**
-   *  Check if the role has changed
-   * @param existingRoleId
-   * @param newRoleId
-   * @returns boolean
-   */
-  private hasRoleChanged(
-    existingRoleId: number | null,
-    newRoleId: number | null
-  ): boolean {
-    return existingRoleId !== newRoleId;
-  }
-
-  /**
-   *  Update the user details
-   * @param details
-   * @param userDetails
-   * @param profileFilename
-   */
-  private async updateUserDetails(
-    details: UserDetailsDocument,
-    userDetails: userDetailsRequest,
-    profileFilename: string | null
-  ) {
-    const existingRoleId = details.role_id;
-    const newRoleId = userDetails.role_id
-      ? parseInt(userDetails.role_id.toString(), 10)
-      : null;
-
-    await this.detailsModel.update({
-      ...this.prepareUpdate(details, userDetails, profileFilename),
-      role_id: this.hasRoleChanged(existingRoleId, newRoleId)
-        ? newRoleId
-        : existingRoleId
-    });
-  }
-
-  /**
-   *  Prepare the update data
-   * @param details
-   * @param userDetails
-   * @param profileFilename
-   * @returns UpdateUserDetailsType
-   */
-  private prepareUpdate(
-    details: UserDetailsDocument,
-    userDetails: userDetailsRequest,
-    profileFilename: string | null
-  ) {
-    return {
-      id: details.id,
-      description: userDetails.description || details.description,
-      notes: userDetails.notes || details.notes,
-      user_account_id: details.user_account_id,
-      profile_filename: profileFilename || details.profile_filename
-    };
-  }
 }

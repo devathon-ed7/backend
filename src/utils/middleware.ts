@@ -1,4 +1,4 @@
-import User from "../models/mariadb/user";
+import User from "../models/user";
 import logger from "./logger";
 import { NextFunction, Request, Response } from "express";
 import { createCustomError } from "./customError";
@@ -6,7 +6,6 @@ import { errorHandler, boomErrorHandler } from "./errorHandler";
 import multer from "multer";
 import { v4 as uuid } from "uuid";
 import JWTToken from "./JWTToken";
-import { UserDocument } from "../interfaces";
 
 const jwtToken = new JWTToken();
 
@@ -66,7 +65,13 @@ const userExtractor = async (
     if (!decodedToken.id) {
       throw createCustomError("token invalid", "JsonWebTokenError");
     }
-    request.user = (await User.getById(decodedToken.id)) as UserDocument;
+
+    const existingUser = await User.getById(decodedToken.id as string);
+    if (!existingUser) {
+      throw createCustomError("token invalid", "JsonWebTokenError");
+    }
+
+    request.user = existingUser
 
     next();
   } catch (error) {
@@ -74,8 +79,8 @@ const userExtractor = async (
   }
 };
 
-export const generateAccessToken = (user: UserDocument) => {
-  return jwtToken.generate({ id: user.id });
+export const generateAccessToken = (id: string) => {
+  return jwtToken.generate({ id });
 };
 
 interface RequestStorage extends Request {

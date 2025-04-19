@@ -1,6 +1,7 @@
 import { Product } from "@prisma/client";
+import { SortOrder } from "./pagination";
 
-export interface ProductDocument extends Product {}
+export interface ProductDocument extends Product { }
 export type CreateProductType = Pick<
   Product,
   | "name"
@@ -14,13 +15,14 @@ export type CreateProductType = Pick<
 export type UpdateProductType = Partial<Product>;
 
 export interface ProductModelInterface {
-  getAll: () => Promise<ProductDocument[]>;
-  getById: (id: number) => Promise<ProductDocument | null>;
-  getByIdWithRelations: (id: number) => Promise<ProductDocument | null>;
-  getAllWithRelations: () => Promise<ProductDocument[] | null>;
+  getAll: (page: number,
+    limit: number,
+    sortBy: string,
+    order: SortOrder) => Promise<ProductDocument[]>;
+  getById: (id: string) => Promise<ProductDocument | null>;
   create: (data: CreateProductType) => Promise<ProductDocument>;
   update: (data: UpdateProductType) => Promise<ProductDocument>;
-  delete: (id: number) => Promise<ProductDocument>;
+  delete: (id: string) => Promise<ProductDocument>;
   getByPage: ({
     skip,
     take
@@ -28,4 +30,5 @@ export interface ProductModelInterface {
     skip: number;
     take: number;
   }) => Promise<ProductDocument[]>;
+  count: () => Promise<number>;
 }

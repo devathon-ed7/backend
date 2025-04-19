@@ -1,8 +1,8 @@
-export type SortOder = "asc" | "desc"
+export type SortOrder = "asc" | "desc"
 
 export interface UserSortOptions {
   sortBy?: string
-  order?: SortOder
+  order?: SortOrder
 }
 
 export interface PaginationOptions {

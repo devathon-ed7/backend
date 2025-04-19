@@ -2,18 +2,16 @@ import Router from "express"
 import { UserController } from "../controllers/user"
 import { validatorHandler } from "../utils/validatorHandler"
 import userSchemas from "../schemas/user"
-import { DetailsModelInterface, UserModelInterface } from "../interfaces"
+import { UserModelInterface } from "../interfaces"
 
 interface CreateUserRouterProps {
   userModel: UserModelInterface
-  detailsModel: DetailsModelInterface
 }
-export const createUserRouter = ({
-  userModel,
-  detailsModel
+export const UserRouter = ({
+  userModel
 }: CreateUserRouterProps) => {
   const userRouter = Router()
-  const userController = new UserController({ userModel, detailsModel })
+  const userController = new UserController({ userModel })
 
   userRouter.get("/", userController.getAll)
 

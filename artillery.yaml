@@ -1,0 +1,21 @@
+config:
+  target: "http://localhost:3000"
+  phases:
+    - duration: 60
+      arrivalRate: 50
+      name: "Warm up the application"
+scenarios:
+  - name: "Atack vulnerable endpoint"
+    flow:
+      - get:
+          url: "/api/v1/users"
+          capture:
+            - json: "$.data"
+              as: "response"
+  - name: "Atack vulnerable endpoint"
+    flow:
+      - get:
+          url: "/api/v1/users"
+          capture:
+            - json: "$.error"
+              as: "error"

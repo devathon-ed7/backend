@@ -7,7 +7,6 @@ import { hashPassword, verifyPassword } from "../utils/password-utils";
 import dotenv from "dotenv";
 import logger from "../utils/logger";
 import axios, { AxiosResponse } from "axios";
-import { omitFields } from "../utils/modelUtils";
 
 dotenv.config();
 
@@ -40,20 +39,20 @@ export class AuthController {
         throw boom.badRequest("All fields are necessary");
       }
 
-      const user = await this.userModel.getByEmail(email);
+      const existingUser = await this.userModel.getByEmail(email);
 
-      if (!user) {
+      if (!existingUser || !existingUser.password) {
         throw boom.notFound("Error wrong email or password");
       }
 
-      const isPasswordCorrect = await verifyPassword(password, user.password);
+      const isPasswordCorrect = await verifyPassword(password, existingUser.password);
       if (!isPasswordCorrect) {
         throw boom.unauthorized("Error wrong email or password");
       }
 
-      const token = generateAccessToken(user);
-      const userWithoutPassword = omitFields(user, ["password"]);
-      response.status(200).json({ user: userWithoutPassword, token });
+
+      const token = generateAccessToken(existingUser.id);
+      response.status(200).json({ user: existingUser, token });
     } catch (error) {
       next(error);
     }
@@ -65,8 +64,8 @@ export class AuthController {
     next: NextFunction
   ): Promise<void> => {
     try {
-      const { fullName, password, email } = request.body;
-      if (!fullName || !password || !email) {
+      const { name, password, email } = request.body;
+      if (!name || !password || !email) {
         throw boom.badRequest("All fields are necessary");
       }
 
@@ -77,14 +76,17 @@ export class AuthController {
       }
       const passwordHash = await hashPassword(password);
       const newUser = await this.userModel.create({
-        full_name: fullName,
+        name,
         password: passwordHash,
         email
       });
 
-      const token = generateAccessToken(newUser);
-      const userWithoutPassword = omitFields(newUser, ["password"]);
-      response.status(201).json({ user: userWithoutPassword, token });
+      const token = generateAccessToken(newUser.id);
+      const payload = {
+        user: { name },
+        token
+      }
+      response.status(201).json(payload);
     } catch (error) {
       next(error);
     }

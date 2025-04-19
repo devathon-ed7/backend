@@ -8,7 +8,7 @@ interface CreateTransactionRouterProps {
   transactionModel: TransactionModelInterface
 }
 
-export const createTransactionRouter = ({
+export const TransactionRouter = ({
   transactionModel
 }: CreateTransactionRouterProps) => {
   const transactionController = new TransactionController({ transactionModel })

@@ -6,7 +6,7 @@ interface CreateAuthRouterProps {
   userModel: UserModelInterface;
 }
 
-export const createAuthRouter = ({ userModel }: CreateAuthRouterProps) => {
+export const AuthRouter = ({ userModel }: CreateAuthRouterProps) => {
   const authRouter = Router();
   const authController = new AuthController({ userModel });
 
