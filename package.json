@@ -15,6 +15,7 @@
   "dependencies": {
     "@hapi/boom": "^10.0.1",
     "@prisma/client": "^6.6.0",
+    "@tsoa/runtime": "^6.6.0",
     "@types/multer": "^1.4.11",
     "@types/uuid": "^10.0.0",
     "axios": "^1.7.9",
@@ -29,6 +30,7 @@
     "jsonwebtoken": "^9.0.2",
     "multer": "^1.4.5-lts.1",
     "tsconfig-paths": "^4.2.0",
+    "tsoa": "^6.6.0",
     "uuid": "^10.0.0"
   },
   "devDependencies": {
