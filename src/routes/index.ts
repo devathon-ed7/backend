@@ -11,13 +11,14 @@ import SupplierModel from "../models/supplier";
 import CategoryModel from "../models/category";
 import ProductModel from "../models/products";
 import TransactionModel from "../models/transaction";
+import middleware from "../utils/middleware";
 
 
 
 export const registerRoutes = (app: Express, API_VERSION: string) => {
 
 
-  app.use(`${API_VERSION}/users`, UserRouter());
+  app.use(`${API_VERSION}/users`, middleware.userExtractor, UserRouter());
   app.use(`${API_VERSION}/auth`, AuthRouter());
   app.use(`${API_VERSION}/suppliers`, SupplierRouter({ supplierModel: SupplierModel }));
   app.use(`${API_VERSION}/categories`, CategoryRoutes({ categoryModel: CategoryModel }));

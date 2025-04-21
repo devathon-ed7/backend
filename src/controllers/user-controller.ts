@@ -1,5 +1,5 @@
 import boom from "@hapi/boom";
-import { Response, Route, Tags, Get, Path, Post, Body, Delete, Put, Query } from "tsoa";
+import { Response, Route, Tags, Get, Path, Post, Body, Delete, Put, Query, Security } from "tsoa";
 
 import { hashPassword } from "../utils/password-utils";
 import { UserPaginatedResponse, SortOrder, UserCreateType, UserDocument, UserDocumentWithoutPassword, UserUpdateType } from "../interfaces";
@@ -7,8 +7,9 @@ import { UserService } from "../services/user-service";
 
 
 
-@Route('users')
+@Route('api/v1/users')
 @Tags('User')
+
 export class UserController {
 
 
@@ -20,13 +21,13 @@ export class UserController {
 
   @Get('/')
   @Response(200, 'Success')
+  @Security('jwt')
   public async getAll(
-    @Query() page: number = 1,
-    @Query() limit: number = 10,
-    @Query() sortBy: string = 'id',
-    @Query() order: SortOrder = 'asc'
+    @Query() page: number,
+    @Query() limit: number,
+    @Query() sortBy: string,
+    @Query() order: SortOrder
   ): Promise<UserPaginatedResponse<UserDocumentWithoutPassword>> {
-
 
     const [users, totalUsers] = await this.userService.getAll(page, limit, sortBy, order as SortOrder);
 
@@ -48,6 +49,7 @@ export class UserController {
   @Get('{id}')
   @Response(200, 'Success')
   @Response(404, 'User not found')
+  @Security('jwt')
   public async getById(
     @Path() id: string
   ): Promise<UserDocumentWithoutPassword | null> {
@@ -64,6 +66,7 @@ export class UserController {
   @Post('/')
   @Response(201, 'User created successfully')
   @Response(409, 'User already exists')
+  @Security('jwt')
   public async create(
     @Body() user: UserCreateType
   ): Promise<UserDocument> {
@@ -95,6 +98,7 @@ export class UserController {
   @Delete('{id}')
   @Response(204, 'User deleted successfully')
   @Response(404, 'User not found')
+  @Security('jwt')
   public async delete(@Path() id: string): Promise<void> {
 
     if (!id) {
@@ -113,6 +117,7 @@ export class UserController {
   @Put('{id}')
   @Response(200, 'User updated successfully')
   @Response(404, 'User not found')
+  @Security('jwt')
   public async update(
     @Path() id: string,
     @Body() user: UserUpdateType
