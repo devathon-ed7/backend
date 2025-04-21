@@ -8,6 +8,9 @@
     "esModuleInterop": true,
      "skipLibCheck": true,
     "moduleResolution": "node",
+    "resolveJsonModule": true,
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true
   },
   "include": ["src/**/*"],
   "exclude": ["node_modules", "dist"]

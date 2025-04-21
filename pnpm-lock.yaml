@@ -62,6 +62,9 @@ importers:
       tsoa:
         specifier: ^6.6.0
         version: 6.6.0
+      typescript-ioc:
+        specifier: ^3.2.2
+        version: 3.2.2
       uuid:
         specifier: ^10.0.0
         version: 10.0.0
@@ -1885,6 +1888,7 @@ packages:
 
   lodash.get@4.4.2:
     resolution: {integrity: sha512-z+Uw/vLuy6gQe8cfaFWD7p0wVv8fJl3mbzXh33RS+0oW2wvUqiRXiQ69gLWSLpgB5/6sU+r6BlQR0MBILadqTQ==}
+    deprecated: This package is deprecated. Use the optional chaining (?.) operator instead.
 
   lodash.includes@4.3.0:
     resolution: {integrity: sha512-W3Bx6mdkRTGtlJISOvVD/lbqjTlPPUDTMnlXZFnVwi9NKJ6tiAk6LVdlhZMm17VZisqhKcgzpO5Wz91PCt5b0w==}
@@ -1915,6 +1919,9 @@ packages:
 
   lodash.once@4.1.1:
     resolution: {integrity: sha512-Sb487aTOCr9drQVL8pIxOzVhafOjZN9UU54hiN8PU3uAiSV7lx1yYNpbNmex2PK6dSJoNTSJUUswT651yww3Mg==}
+
+  lodash.set@4.3.2:
+    resolution: {integrity: sha512-4hNPN5jlm/N/HLMCO43v8BXKq9Z7QdAGc/VGrRD61w8gN9g/6jF9A4L1pbUgBLCffi0w9VsXfTOij5x8iTyFvg==}
 
   lru-cache@10.4.3:
     resolution: {integrity: sha512-JNAzZcXrCt42VGLuYz0zfAzDfAvJWW6AfYlDBQyDV5DClI2m5sAmK+OIO7s59XfsRsWHp02jAJrRadPRGTt6SQ==}
@@ -2219,6 +2226,9 @@ packages:
     resolution: {integrity: sha512-9u/sniCrY3D5WdsERHzHE4G2YCXqoG5FTHUiCC4SIbr6XcLZBY05ya9EKjYek9O5xOAwjGq+1JdGBAS7Q9ScoA==}
     engines: {node: '>= 6'}
 
+  reflect-metadata@0.1.14:
+    resolution: {integrity: sha512-ZhYeb6nRaXCfhnndflDK8qI6ZQ/YcWZCISRAWICW9XYqMUwjZM9Z0DveWX/ABN01oxSHwVxKQmxeYZSsm0jh5A==}
+
   reflect-metadata@0.2.2:
     resolution: {integrity: sha512-urBwgfrvVP/eAyXx4hluJivBKzuEbSQs9rKWCrCkbSxNv8mxPcUZKeuoF3Uy4mJl3Lwprp6yy5/39VWigZ4K6Q==}
 
@@ -2521,6 +2531,9 @@ packages:
     peerDependenciesMeta:
       typescript:
         optional: true
+
+  typescript-ioc@3.2.2:
+    resolution: {integrity: sha512-NI09BFj213x8vqOboOgrQt94MdNfKuXi68pnp4obT9a3uRk5cVjTPagLwkvZJXpSN4iV3sbSGhlQgY2uHEBhoA==}
 
   typescript@5.5.4:
     resolution: {integrity: sha512-Mtq29sKDAEYP7aljRgtPOpTvOfbwRWlS6dPRzwjdE+C0R4brX/GUyhHSecbHMFLNBLcJIPt9nl9yG5TZ1weH+Q==}
@@ -4585,6 +4598,8 @@ snapshots:
 
   lodash.once@4.1.1: {}
 
+  lodash.set@4.3.2: {}
+
   lru-cache@10.4.3: {}
 
   make-dir@3.1.0:
@@ -4853,6 +4868,8 @@ snapshots:
       inherits: 2.0.4
       string_decoder: 1.3.0
       util-deprecate: 1.0.2
+
+  reflect-metadata@0.1.14: {}
 
   reflect-metadata@0.2.2: {}
 
@@ -5233,6 +5250,12 @@ snapshots:
       typescript: 5.5.4
     transitivePeerDependencies:
       - supports-color
+
+  typescript-ioc@3.2.2:
+    dependencies:
+      lodash.get: 4.4.2
+      lodash.set: 4.3.2
+      reflect-metadata: 0.1.14
 
   typescript@5.5.4: {}
 

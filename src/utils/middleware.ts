@@ -1,4 +1,4 @@
-import User from "../models/user";
+import User from "../models/user-model";
 import logger from "./logger";
 import { NextFunction, Request, Response } from "express";
 import { createCustomError } from "./customError";

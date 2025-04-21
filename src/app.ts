@@ -9,13 +9,11 @@ import middleware from "./utils/middleware";
 // Router
 import { registerRoutes } from "./routes";
 
-// Swagger
-import swagger from "./swagger";
-
-
+import swaggerUi from 'swagger-ui-express';
+import swaggerDocument from './swagger/swagger.json';
 
 const app: Express = express();
-swagger(app);
+
 const API_VERSION = "/api/v1";
 
 app.use(cors({ credentials: true, origin: true }));
@@ -31,11 +29,12 @@ app.set("view engine", "ejs");
 console.log(__dirname);
 
 // Routes
-//auth
 registerRoutes(app, API_VERSION);
 
 //static files
 app.use(express.static("build"));
+
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
 // Middlewares
 app.use(middleware.boomErrorHandler);
