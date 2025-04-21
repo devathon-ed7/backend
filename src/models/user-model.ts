@@ -1,5 +1,5 @@
 import { PrismaClient } from "@prisma/client";
-import { CreateUserType, SortOrder, UpdateUserType } from "../interfaces";
+import { SortOrder, UserCreateType, UserUpdateType } from "../interfaces";
 
 const prisma = new PrismaClient();
 
@@ -62,16 +62,16 @@ export default class UserModel {
       }
     });
 
-  static create = async (user: CreateUserType) => {
+  static create = async (user: UserCreateType) => {
     return await prisma.user.create({
       data: user
     });
   }
 
-  static update = async (user: UpdateUserType) => {
+  static update = async (id: string, user: UserUpdateType) => {
     return await prisma.user.update({
       data: user,
-      where: { id: user.id }
+      where: { id }
     });
   }
 
