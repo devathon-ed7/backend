@@ -10,6 +10,7 @@ export default class UserModel {
     sortBy: string = "id",
     order: SortOrder = "asc"
   ) => {
+
     const users = await prisma.user.findMany({
       omit: {
         password: true,

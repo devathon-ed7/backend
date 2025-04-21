@@ -10,10 +10,10 @@ export const UserRouter = () => {
   const userController = new UserController()
 
   userRouter.get("/", (req, res, next) => {
-    const page = req.query.page as number | undefined;
-    const limit = req.query.limit as number | undefined;
-    const sortBy = req.query.sortBy as string | undefined;
-    const order = req.query.order as SortOrder | undefined;
+    const page = req.query.page ? parseInt(req.query.page as string) : 1;
+    const limit = req.query.limit ? parseInt(req.query.limit as string) : 10;
+    const sortBy = req.query.sortBy ? req.query.sortBy as string : "id";
+    const order = req.query.order ? req.query.order as SortOrder : "asc";
     userController
       .getAll(page, limit, sortBy, order)
       .then((result) => res.send(result))

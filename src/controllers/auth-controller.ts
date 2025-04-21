@@ -6,7 +6,7 @@ import { SignInRequest, SignInResponse, SignUpRequest, SignUpResponse } from "..
 
 const frontendUrl = process.env.FRONTEND_URL;
 
-@Route("auth")
+@Route("api/v1/auth")
 @Tags("Auth")
 export class AuthController {
 
