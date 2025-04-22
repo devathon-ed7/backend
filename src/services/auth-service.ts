@@ -7,6 +7,8 @@ import axios, { AxiosResponse } from "axios";
 import { Singleton } from "typescript-ioc";
 import UserModel from "../models/user-model";
 
+dotenv.config();
+
 //github
 const clientId = process.env.CLIENT_ID;
 const clientSecret = process.env.CLIENT_SECRET;
@@ -16,8 +18,6 @@ const googleClientId: string = process.env.GOOGLE_CLIENT_ID as string;
 const googleClientSecret: string = process.env.GOOGLE_CLIENT_SECRET as string;
 const googleApiUrl: string = process.env.GOOGLE_API_URL as string;
 const googleRedirectUri: string = process.env.GOOGLE_REDIRECT_URI as string;
-
-dotenv.config();
 
 @Singleton
 export class AuthService {

@@ -1,19 +1,22 @@
-
 import boom from "@hapi/boom";
-import { Body, Post, Query, Response, Route, Tags } from "tsoa";
+import dotenv from "dotenv";
+import { Body, Controller, Post, Query, Response, Route, Tags } from "tsoa";
 import { AuthService } from "../services/auth-service";
 import { SignInRequest, SignInResponse, SignUpRequest, SignUpResponse } from "../interfaces";
+
+dotenv.config();
 
 const frontendUrl = process.env.FRONTEND_URL;
 
 @Route("api/v1/auth")
 @Tags("Auth")
-export class AuthController {
+export class AuthController extends Controller {
 
 
   private authService: AuthService;
 
   constructor() {
+    super();
     this.authService = new AuthService();
   }
 
@@ -50,7 +53,7 @@ export class AuthController {
   @Response(302, 'Redirect')
   public async github(
     @Query() code: string
-  ): Promise<{ redirect: string }> {
+  ): Promise<void> {
 
     if (!code) {
       throw boom.badRequest("Code is missing");
@@ -60,7 +63,8 @@ export class AuthController {
 
     const redirectUrl = `${frontendUrl}?access_token=${accessToken}&name=${encodeURIComponent(userInfo.name)}&email=${encodeURIComponent(userInfo.email)}&picture=${encodeURIComponent(userInfo.avatar_url)}`;
 
-    return { redirect: redirectUrl };
+    this.setStatus(302);
+    this.setHeader('Location', redirectUrl);
 
   };
 
@@ -68,7 +72,7 @@ export class AuthController {
   @Response(302, 'Redirect')
   public async google(
     @Query() code: string
-  ): Promise<{ redirect: string }> {
+  ): Promise<void> {
 
     if (!code) {
       throw boom.badRequest("Code is missing");
@@ -77,6 +81,7 @@ export class AuthController {
 
     const redirectUrl = `${frontendUrl}?access_token=${accessToken}&name=${encodeURIComponent(userInfo.name)}&email=${encodeURIComponent(userInfo.email)}&picture=${encodeURIComponent(userInfo.picture)}`;
 
-    return { redirect: redirectUrl };
-  };
+    this.setStatus(302);
+    this.setHeader('Location', redirectUrl);
+  }
 }
