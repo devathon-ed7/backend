@@ -302,30 +302,7 @@
 				"additionalProperties": false
 			}
 		},
-		"securitySchemes": {
-			"api_key": {
-				"type": "apiKey",
-				"name": "access_token",
-				"in": "query"
-			},
-			"jwt": {
-				"type": "http",
-				"scheme": "bearer",
-				"bearerFormat": "JWT"
-			},
-			"tsoa_auth": {
-				"type": "oauth2",
-				"flows": {
-					"implicit": {
-						"authorizationUrl": "http://swagger.io/api/oauth/dialog",
-						"scopes": {
-							"write:pets": "modify things",
-							"read:pets": "read things"
-						}
-					}
-				}
-			}
-		}
+		"securitySchemes": {}
 	},
 	"info": {
 		"title": "devathon7",
@@ -363,9 +340,8 @@
 					{
 						"in": "query",
 						"name": "page",
-						"required": false,
+						"required": true,
 						"schema": {
-							"default": 1,
 							"format": "double",
 							"type": "number"
 						}
@@ -373,9 +349,8 @@
 					{
 						"in": "query",
 						"name": "limit",
-						"required": false,
+						"required": true,
 						"schema": {
-							"default": 10,
 							"format": "double",
 							"type": "number"
 						}
@@ -383,16 +358,15 @@
 					{
 						"in": "query",
 						"name": "sortBy",
-						"required": false,
+						"required": true,
 						"schema": {
-							"default": "id",
 							"type": "string"
 						}
 					},
 					{
 						"in": "query",
 						"name": "order",
-						"required": false,
+						"required": true,
 						"schema": {
 							"$ref": "#/components/schemas/SortOrder"
 						}
