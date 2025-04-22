@@ -1,7 +1,10 @@
 import boom from "@hapi/boom";
+import dotenv from "dotenv";
 import { Body, Controller, Post, Query, Response, Route, Tags } from "tsoa";
 import { AuthService } from "../services/auth-service";
 import { SignInRequest, SignInResponse, SignUpRequest, SignUpResponse } from "../interfaces";
+
+dotenv.config();
 
 const frontendUrl = process.env.FRONTEND_URL;
 
