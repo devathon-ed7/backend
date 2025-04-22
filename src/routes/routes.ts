@@ -7,8 +7,11 @@ import {  fetchMiddlewares, ExpressTemplateService } from '@tsoa/runtime';
 import { UserController } from './../controllers/user-controller';
 // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
 import { AuthController } from './../controllers/auth-controller';
+import { expressAuthentication } from './authentication';
+// @ts-ignore - no great way to install types from subpackage
 import type { Request as ExRequest, Response as ExResponse, RequestHandler, Router } from 'express';
 
+const expressAuthenticationRecasted = expressAuthentication as (req: ExRequest, securityName: string, scopes?: string[], res?: ExResponse) => Promise<any>;
 
 
 // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
@@ -134,10 +137,10 @@ export function RegisterRoutes(app: Router) {
 
     
         const argsUserController_getAll: Record<string, TsoaRoute.ParameterSchema> = {
-                page: {"default":1,"in":"query","name":"page","dataType":"double"},
-                limit: {"default":10,"in":"query","name":"limit","dataType":"double"},
-                sortBy: {"default":"id","in":"query","name":"sortBy","dataType":"string"},
-                order: {"default":"asc","in":"query","name":"order","ref":"SortOrder"},
+                page: {"in":"query","name":"page","required":true,"dataType":"double"},
+                limit: {"in":"query","name":"limit","required":true,"dataType":"double"},
+                sortBy: {"in":"query","name":"sortBy","required":true,"dataType":"string"},
+                order: {"in":"query","name":"order","required":true,"ref":"SortOrder"},
         };
         app.get('/api/v1/users',
             authenticateMiddleware([{"jwt":[]}]),
