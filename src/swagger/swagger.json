@@ -302,7 +302,13 @@
 				"additionalProperties": false
 			}
 		},
-		"securitySchemes": {}
+		"securitySchemes": {
+			"jwt": {
+				"type": "http",
+				"scheme": "bearer",
+				"bearerFormat": "JWT"
+			}
+		}
 	},
 	"info": {
 		"title": "devathon7",
@@ -610,23 +616,8 @@
 			"post": {
 				"operationId": "Github",
 				"responses": {
-					"200": {
-						"description": "Ok",
-						"content": {
-							"application/json": {
-								"schema": {
-									"properties": {
-										"redirect": {
-											"type": "string"
-										}
-									},
-									"required": [
-										"redirect"
-									],
-									"type": "object"
-								}
-							}
-						}
+					"204": {
+						"description": "No content"
 					},
 					"302": {
 						"description": "Redirect"
@@ -652,23 +643,8 @@
 			"post": {
 				"operationId": "Google",
 				"responses": {
-					"200": {
-						"description": "Ok",
-						"content": {
-							"application/json": {
-								"schema": {
-									"properties": {
-										"redirect": {
-											"type": "string"
-										}
-									},
-									"required": [
-										"redirect"
-									],
-									"type": "object"
-								}
-							}
-						}
+					"204": {
+						"description": "No content"
 					},
 					"302": {
 						"description": "Redirect"
