@@ -6,7 +6,6 @@ import { errorHandler, boomErrorHandler } from "./errorHandler";
 import multer from "multer";
 import { v4 as uuid } from "uuid";
 import JWTToken from "./JWTToken";
-import { decode } from "punycode";
 
 const jwtToken = new JWTToken();
 
@@ -58,7 +57,7 @@ const userExtractor = async (
       throw createCustomError("token missing or invalid", "JsonWebTokenError");
     }
 
-    const decodedToken = jwtToken.verify(token);
+    const decodedToken = await jwtToken.verify(token);
 
     if (typeof decodedToken === "string" || !decodedToken.id) {
       throw createCustomError("token invalid", "JsonWebTokenError");
@@ -69,18 +68,19 @@ const userExtractor = async (
       throw createCustomError("User not found", "JsonWebTokenError");
     }
 
-    request.user = existingUser
+    request.user = existingUser;
 
     next();
   } catch (error: unknown) {
     if (error instanceof Error) {
-      const message = error.message.includes("Invalid token") ? "Invalid token" :
-        error.message.includes("jwt expired") ? "Token has expired" :
-          "Unauthorized";
+      const message = error.message.includes("Invalid token")
+        ? "Invalid token"
+        : error.message.includes("jwt expired")
+        ? "Token has expired"
+        : "Unauthorized";
 
       return response.status(401).json({ message });
     }
-
 
     response.status(500).json({ message: "An unexpected error occurred" });
   }

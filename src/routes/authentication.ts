@@ -1,9 +1,5 @@
 import * as express from "express";
-import JWTToken from "../utils/JWTToken";
-
-interface DecodedToken {
-  id?: string;
-}
+import JWTToken, { DecodedToken } from "../utils/JWTToken";
 
 const jwtToken = new JWTToken();
 
