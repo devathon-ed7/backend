@@ -1,13 +1,12 @@
-import * as express from 'express';
-import JWTToken from '../utils/JWTToken';
+import * as express from "express";
+import JWTToken, { DecodedToken } from "../utils/JWTToken";
 
-interface DecodedToken {
-
-  scopes: string[];
-  id?: string;
-}
 const jwtToken = new JWTToken();
-export function expressAuthentication(request: express.Request, securityName: string): Promise<DecodedToken> {
+
+export async function expressAuthentication(
+  request: express.Request,
+  securityName: string
+): Promise<DecodedToken> {
   return new Promise((resolve, reject) => {
     if (securityName === "jwt") {
       const token =
@@ -19,9 +18,12 @@ export function expressAuthentication(request: express.Request, securityName: st
         return reject(new Error("No token provided"));
       }
 
-      const decodedToken = jwtToken.verify(token);
-      return decodedToken
-
+      try {
+        const decoded = jwtToken.verify(token) as DecodedToken;
+        resolve(decoded);
+      } catch (error) {
+        reject(error);
+      }
     } else {
       reject(new Error("Invalid security name"));
     }
