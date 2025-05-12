@@ -87,6 +87,7 @@ const models: TsoaRoute.Models = {
     "SignInResponse": {
         "dataType": "refObject",
         "properties": {
+            "user": {"ref":"UserDocumentWithoutPassword","required":true},
             "token": {"dataType":"string","required":true},
         },
         "additionalProperties": false,

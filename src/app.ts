@@ -9,20 +9,18 @@ import middleware from "./utils/middleware";
 // Router
 import { registerRoutes } from "./routes";
 
-import swaggerUi from 'swagger-ui-express';
-import swaggerDocument from './swagger/swagger.json';
+import swaggerUi from "swagger-ui-express";
+import swaggerDocument from "./swagger/swagger.json";
 
 const app: Express = express();
-
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 const API_VERSION = "/api/v1";
 
 app.use(cors({ credentials: true, origin: true }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.disable("x-powered-by");
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 
 app.set("views", path.join(__dirname, "views"));
 app.set("view engine", "ejs");
@@ -34,7 +32,8 @@ registerRoutes(app, API_VERSION);
 //static files
 app.use(express.static("build"));
 
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
+//swagger
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
 // Middlewares
 app.use(middleware.boomErrorHandler);

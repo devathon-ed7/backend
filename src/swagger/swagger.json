@@ -243,11 +243,15 @@
 			},
 			"SignInResponse": {
 				"properties": {
+					"user": {
+						"$ref": "#/components/schemas/UserDocumentWithoutPassword"
+					},
 					"token": {
 						"type": "string"
 					}
 				},
 				"required": [
+					"user",
 					"token"
 				],
 				"type": "object",
