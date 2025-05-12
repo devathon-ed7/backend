@@ -10,15 +10,14 @@ export default class UserModel {
     sortBy: string = "id",
     order: SortOrder = "asc"
   ) => {
-
     const users = await prisma.user.findMany({
       omit: {
-        password: true,
+        password: true
       },
       include: {
         accounts: {
           include: {
-            user: true,
+            user: true
           }
         }
       },
@@ -29,35 +28,34 @@ export default class UserModel {
       }
     });
 
-    return users
+    return users;
   };
 
   static getById = async (id: string) => {
     return await prisma.user.findUnique({
       where: {
-        id,
+        id
       },
       omit: {
-        password: true,
+        password: true
       },
       include: {
         accounts: {
           include: {
-            user: true,
+            user: true
           }
         }
-      },
+      }
     });
-  }
+  };
 
   static getByEmail = async (email: string) =>
     await prisma.user.findUnique({
       where: { email },
-
       include: {
         accounts: {
           include: {
-            user: true,
+            user: true
           }
         }
       }
@@ -67,15 +65,14 @@ export default class UserModel {
     return await prisma.user.create({
       data: user
     });
-  }
+  };
 
   static update = async (id: string, user: UserUpdateType) => {
     return await prisma.user.update({
       data: user,
       where: { id }
     });
-  }
-
+  };
 
   static delete = async (id: string) =>
     await prisma.user.delete({
@@ -85,6 +82,4 @@ export default class UserModel {
     });
 
   static count = async () => await prisma.user.count();
-
-
 }

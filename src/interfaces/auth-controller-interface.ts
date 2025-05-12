@@ -1,4 +1,4 @@
-
+import { UserDocumentWithoutPassword } from "./user-model-interface";
 
 export interface SignInRequest {
   email: string;
@@ -16,5 +16,6 @@ export interface SignUpResponse {
 }
 
 export interface SignInResponse {
+  user: UserDocumentWithoutPassword;
   token: string;
 }

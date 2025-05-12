@@ -1,6 +1,11 @@
 import boom from "@hapi/boom";
 import dotenv from "dotenv";
-import { GithubUserInfo, GoogleUserInfo } from "../interfaces";
+import {
+  GithubUserInfo,
+  GoogleUserInfo,
+  SignInResponse,
+  UserDocumentWithoutPassword
+} from "../interfaces";
 import { hashPassword, verifyPassword } from "../utils/password-utils";
 import { generateAccessToken } from "../utils/middleware";
 import axios, { AxiosResponse } from "axios";
@@ -21,26 +26,39 @@ const googleRedirectUri: string = process.env.GOOGLE_REDIRECT_URI as string;
 
 @Singleton
 export class AuthService {
-
-
-  public signIn = async (email: string, password: string): Promise<string> => {
+  public signIn = async (
+    email: string,
+    password: string
+  ): Promise<SignInResponse> => {
     const existingUser = await UserModel.getByEmail(email);
 
     if (!existingUser || !existingUser.password) {
       throw boom.notFound("Error wrong email or password");
     }
 
-    const isPasswordCorrect = await verifyPassword(password, existingUser.password);
+    const isPasswordCorrect = await verifyPassword(
+      password,
+      existingUser.password
+    );
     if (!isPasswordCorrect) {
       throw boom.unauthorized("Error wrong email or password");
     }
 
     const token = generateAccessToken(existingUser.id);
+    const user = (await UserModel.getById(
+      existingUser.id
+    )) as UserDocumentWithoutPassword;
+    return {
+      user,
+      token
+    };
+  };
 
-    return token
-  }
-
-  public signUp = async (email: string, password: string, name: string): Promise<string> => {
+  public signUp = async (
+    email: string,
+    password: string,
+    name: string
+  ): Promise<string> => {
     const existingUser = await UserModel.getByEmail(email);
 
     if (existingUser) {
@@ -54,13 +72,14 @@ export class AuthService {
     });
 
     const token = generateAccessToken(newUser.id);
-    return token
-  }
+    return token;
+  };
 
-  public github = async (code: string): Promise<{ accessToken: string; userInfo: GithubUserInfo }> => {
-
-    const githubResponse: AxiosResponse<{ access_token: string }> =
-      await axios({
+  public github = async (
+    code: string
+  ): Promise<{ accessToken: string; userInfo: GithubUserInfo }> => {
+    const githubResponse: AxiosResponse<{ access_token: string }> = await axios(
+      {
         method: "POST",
 
         url: `${githubApiUrl}?client_id=${clientId}&client_secret=${clientSecret}&code=${code}`,
@@ -68,7 +87,8 @@ export class AuthService {
         headers: {
           Accept: "application/json"
         }
-      });
+      }
+    );
 
     const accessToken = githubResponse.data.access_token;
 
@@ -80,10 +100,12 @@ export class AuthService {
       }
     });
 
-    return { accessToken, userInfo: userResponse.data }
-  }
+    return { accessToken, userInfo: userResponse.data };
+  };
 
-  public google = async (code: string): Promise<{ accessToken: string; userInfo: GoogleUserInfo }> => {
+  public google = async (
+    code: string
+  ): Promise<{ accessToken: string; userInfo: GoogleUserInfo }> => {
     const data = {
       code,
       client_id: googleClientId,
@@ -114,6 +136,6 @@ export class AuthService {
     return {
       accessToken,
       userInfo: userResponse.data
-    }
-  }
+    };
+  };
 }
