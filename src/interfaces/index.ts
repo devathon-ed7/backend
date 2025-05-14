@@ -1,4 +1,4 @@
-export * from "./category";
+export * from "./category-model-interface";
 export * from "./supplier";
 export * from "./user-model-interface";
 export * from "./user-controller-interface";
