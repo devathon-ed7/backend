@@ -1,37 +1,38 @@
 import { PrismaClient } from "@prisma/client";
-import { CreateCategoryType, UpdateCategoryType } from "../interfaces";
+import {
+  CategoryCreateType,
+  CategoryUpdateType,
+  SortOrder
+} from "../interfaces";
 
 const prisma = new PrismaClient();
 
 export default class CategoryModel {
   static count = async () => await prisma.category.count();
 
-  static getAll = async ({
-    limit,
-    offset,
-    sort
-  }: {
-    limit: number;
-    offset: number;
-    sort: string;
-  }) =>
+  static getAll = async (
+    page: number = 1,
+    limit: number = 10,
+    sortBy: string = "id",
+    order: SortOrder = "asc"
+  ) =>
     await prisma.category.findMany({
-      skip: offset,
+      skip: (page - 1) * limit,
       take: limit,
       orderBy: {
-        [sort]: "desc"
+        [sortBy]: order
       }
     });
 
   static getById = async (id: string) => {
     return await prisma.category.findUnique({
       where: {
-        id,
+        id
       }
     });
-  }
+  };
 
-  static create = async (data: CreateCategoryType) =>
+  static create = async (data: CategoryCreateType) =>
     await prisma.category.create({ data });
 
   static delete = async (id: string) =>
@@ -41,12 +42,12 @@ export default class CategoryModel {
       }
     });
 
-  static update = async (data: UpdateCategoryType) => {
+  static update = async (id: string, data: CategoryUpdateType) => {
     return await prisma.category.update({
       data,
-      where: { id: data.id }
+      where: { id }
     });
-  }
+  };
 
   static getByName = async (name: string) => {
     return await prisma.category.findMany({
@@ -54,7 +55,7 @@ export default class CategoryModel {
         name
       }
     });
-  }
+  };
 
   static getByDescription = async (description: string) => {
     return await prisma.category.findMany({
@@ -62,5 +63,5 @@ export default class CategoryModel {
         description
       }
     });
-  }
+  };
 }

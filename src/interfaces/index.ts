@@ -1,4 +1,4 @@
-export * from "./category";
+export * from "./category-model-interface";
 export * from "./supplier";
 export * from "./user-model-interface";
 export * from "./user-controller-interface";
@@ -8,3 +8,4 @@ export * from "./pagination";
 export * from "./request";
 export * from "./auth-service-interface";
 export * from "./auth-controller-interface";
+export * from "./category-controller-interface";
