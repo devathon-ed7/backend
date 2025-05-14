@@ -24,6 +24,12 @@ export class CategoryService {
     return CategoryModel.getById(value);
   };
 
+  public getByName = async (
+    value: string
+  ): Promise<CategoryDocument[] | null> => {
+    return CategoryModel.getByName(value);
+  };
+
   public getByDescription = async (
     value: string
   ): Promise<CategoryDocument[] | null> => {

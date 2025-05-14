@@ -8,3 +8,4 @@ export * from "./pagination";
 export * from "./request";
 export * from "./auth-service-interface";
 export * from "./auth-controller-interface";
+export * from "./category-controller-interface";
