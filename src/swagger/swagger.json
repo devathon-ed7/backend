@@ -241,6 +241,167 @@
 			"UserUpdateType": {
 				"$ref": "#/components/schemas/Partial_User_"
 			},
+			"DefaultSelection_Prisma._36_CategoryPayload_": {
+				"properties": {
+					"parentCategoryId": {
+						"type": "string"
+					},
+					"description": {
+						"type": "string"
+					},
+					"updated_at": {
+						"type": "string",
+						"format": "date-time"
+					},
+					"created_at": {
+						"type": "string",
+						"format": "date-time"
+					},
+					"id": {
+						"type": "string"
+					},
+					"name": {
+						"type": "string"
+					}
+				},
+				"required": [
+					"parentCategoryId",
+					"description",
+					"updated_at",
+					"created_at",
+					"id",
+					"name"
+				],
+				"type": "object"
+			},
+			"CategoryDocument": {
+				"properties": {
+					"parentCategoryId": {
+						"type": "string"
+					},
+					"description": {
+						"type": "string"
+					},
+					"updated_at": {
+						"type": "string",
+						"format": "date-time"
+					},
+					"created_at": {
+						"type": "string",
+						"format": "date-time"
+					},
+					"id": {
+						"type": "string"
+					},
+					"name": {
+						"type": "string"
+					}
+				},
+				"required": [
+					"parentCategoryId",
+					"description",
+					"updated_at",
+					"created_at",
+					"id",
+					"name"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"CategoryPaginatedResponse_CategoryDocument_": {
+				"properties": {
+					"categories": {
+						"items": {
+							"$ref": "#/components/schemas/CategoryDocument"
+						},
+						"type": "array"
+					},
+					"totalCategories": {
+						"type": "number",
+						"format": "double"
+					},
+					"totalPages": {
+						"type": "number",
+						"format": "double"
+					},
+					"currentPage": {
+						"type": "number",
+						"format": "double"
+					},
+					"sort": {
+						"properties": {
+							"order": {
+								"$ref": "#/components/schemas/SortOrder"
+							},
+							"sortBy": {
+								"type": "string"
+							}
+						},
+						"required": [
+							"order",
+							"sortBy"
+						],
+						"type": "object"
+					}
+				},
+				"required": [
+					"categories",
+					"totalCategories",
+					"totalPages",
+					"currentPage",
+					"sort"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"Pick_Category.name-or-description_": {
+				"properties": {
+					"name": {
+						"type": "string"
+					},
+					"description": {
+						"type": "string"
+					}
+				},
+				"required": [
+					"name",
+					"description"
+				],
+				"type": "object",
+				"description": "From T, pick a set of properties whose keys are in the union K"
+			},
+			"CategoryCreateType": {
+				"$ref": "#/components/schemas/Pick_Category.name-or-description_"
+			},
+			"Partial_Category_": {
+				"properties": {
+					"name": {
+						"type": "string"
+					},
+					"id": {
+						"type": "string"
+					},
+					"created_at": {
+						"type": "string",
+						"format": "date-time"
+					},
+					"updated_at": {
+						"type": "string",
+						"format": "date-time"
+					},
+					"description": {
+						"type": "string"
+					},
+					"parentCategoryId": {
+						"type": "string"
+					}
+				},
+				"type": "object",
+				"description": "Make all properties in T optional"
+			},
+			"CategoryUpdateType": {
+				"$ref": "#/components/schemas/Partial_Category_"
+			},
 			"SignInResponse": {
 				"properties": {
 					"user": {
@@ -540,6 +701,312 @@
 						}
 					}
 				}
+			}
+		},
+		"/api/v1/categories": {
+			"get": {
+				"operationId": "GetAll",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/CategoryPaginatedResponse_CategoryDocument_"
+								}
+							}
+						}
+					}
+				},
+				"tags": [
+					"Category"
+				],
+				"security": [
+					{
+						"jwt": []
+					}
+				],
+				"parameters": [
+					{
+						"in": "query",
+						"name": "page",
+						"required": true,
+						"schema": {
+							"format": "double",
+							"type": "number"
+						}
+					},
+					{
+						"in": "query",
+						"name": "limit",
+						"required": true,
+						"schema": {
+							"format": "double",
+							"type": "number"
+						}
+					},
+					{
+						"in": "query",
+						"name": "sortBy",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					},
+					{
+						"in": "query",
+						"name": "order",
+						"required": true,
+						"schema": {
+							"$ref": "#/components/schemas/SortOrder"
+						}
+					}
+				]
+			},
+			"post": {
+				"operationId": "Create",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/CategoryDocument"
+								}
+							}
+						}
+					},
+					"201": {
+						"description": "Category created successfully"
+					},
+					"400": {
+						"description": "All data is required"
+					}
+				},
+				"tags": [
+					"Category"
+				],
+				"security": [
+					{
+						"jwt": []
+					}
+				],
+				"parameters": [],
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/CategoryCreateType"
+							}
+						}
+					}
+				}
+			}
+		},
+		"/api/v1/categories/{id}": {
+			"get": {
+				"operationId": "GetById",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"allOf": [
+										{
+											"$ref": "#/components/schemas/CategoryDocument"
+										}
+									],
+									"nullable": true
+								}
+							}
+						}
+					},
+					"404": {
+						"description": "Category not found"
+					}
+				},
+				"tags": [
+					"Category"
+				],
+				"security": [
+					{
+						"jwt": []
+					}
+				],
+				"parameters": [
+					{
+						"in": "path",
+						"name": "id",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				]
+			},
+			"delete": {
+				"operationId": "Delete",
+				"responses": {
+					"204": {
+						"description": "No content"
+					},
+					"404": {
+						"description": "Category not found"
+					}
+				},
+				"tags": [
+					"Category"
+				],
+				"security": [
+					{
+						"jwt": []
+					}
+				],
+				"parameters": [
+					{
+						"in": "path",
+						"name": "id",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				]
+			},
+			"put": {
+				"operationId": "Update",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/CategoryDocument"
+								}
+							}
+						}
+					},
+					"400": {
+						"description": "All data is required"
+					},
+					"404": {
+						"description": "Category not found"
+					}
+				},
+				"tags": [
+					"Category"
+				],
+				"security": [
+					{
+						"jwt": []
+					}
+				],
+				"parameters": [
+					{
+						"in": "path",
+						"name": "id",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				],
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/CategoryUpdateType"
+							}
+						}
+					}
+				}
+			}
+		},
+		"/api/v1/categories/name/{name}": {
+			"get": {
+				"operationId": "GetByName",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"items": {
+										"$ref": "#/components/schemas/CategoryDocument"
+									},
+									"type": "array",
+									"nullable": true
+								}
+							}
+						}
+					},
+					"404": {
+						"description": "Category not found"
+					}
+				},
+				"tags": [
+					"Category"
+				],
+				"security": [
+					{
+						"jwt": []
+					}
+				],
+				"parameters": [
+					{
+						"in": "path",
+						"name": "name",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				]
+			}
+		},
+		"/api/v1/categories/description/{description}": {
+			"get": {
+				"operationId": "GetByDescription",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"items": {
+										"$ref": "#/components/schemas/CategoryDocument"
+									},
+									"type": "array",
+									"nullable": true
+								}
+							}
+						}
+					},
+					"404": {
+						"description": "Category not found"
+					}
+				},
+				"tags": [
+					"Category"
+				],
+				"security": [
+					{
+						"jwt": []
+					}
+				],
+				"parameters": [
+					{
+						"in": "path",
+						"name": "description",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				]
 			}
 		},
 		"/api/v1/auth/signin": {

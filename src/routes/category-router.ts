@@ -2,6 +2,7 @@ import { Router } from "express";
 import { CategoryController } from "../controllers/category-controller";
 import { SortOrder } from "../interfaces";
 import { validatorHandler } from "../utils/validatorHandler";
+import categorySchemas from "../schemas/category-schema";
 
 export const CategoryRoutes = () => {
   const categoryRouter = Router();
@@ -35,9 +36,29 @@ export const CategoryRoutes = () => {
     validatorHandler(categorySchemas.get, "params"),
     categoryController.getByDescription
   );
-  categoryRouter.post("/", categoryController.create);
-  categoryRouter.delete("/:id", categoryController.delete);
-  categoryRouter.put("/:id", categoryController.update);
+
+  categoryRouter.post(
+    "/",
+    validatorHandler(categorySchemas.create, "body"),
+    categoryController.create
+  );
+
+  categoryRouter.delete(
+    "/:id",
+    validatorHandler(categorySchemas.delete, "params"),
+    categoryController.delete
+  );
+
+  categoryRouter.put(
+    "/:id",
+    validatorHandler(categorySchemas.get, "params"),
+    validatorHandler(categorySchemas.update, "body"),
+    (req, res, next) =>
+      categoryController
+        .update(req.params.id, req.body)
+        .then((result) => res.send(result))
+        .catch(next)
+  );
 
   return categoryRouter;
 };
