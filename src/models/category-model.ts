@@ -64,4 +64,13 @@ export default class CategoryModel {
       }
     });
   };
+
+  static getCategory = async () => {
+    return await prisma.category.findMany({
+      where: { parentCategoryId: null }, //only get root categories
+      include: {
+        children: true //get all children (sub categories)
+      }
+    });
+  };
 }
