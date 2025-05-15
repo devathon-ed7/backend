@@ -15,8 +15,13 @@ export class CategoryService {
     sortBy: string,
     order: SortOrder
   ): Promise<[CategoryDocument[], number]> => {
-    const categories = await CategoryModel.getAll(page, limit, sortBy, order);
-    const totalCategories = await CategoryModel.count();
+    const categories = await CategoryModel.getCategory(
+      page,
+      limit,
+      sortBy,
+      order
+    );
+    const totalCategories = await CategoryModel.parentCount();
     return [categories, totalCategories];
   };
 

@@ -9,11 +9,13 @@ const prisma = new PrismaClient();
 
 export default class CategoryModel {
   static count = async () => await prisma.category.count();
+  static parentCount = async () =>
+    await prisma.category.count({ where: { parentCategoryId: null } });
 
   static getAll = async (
     page: number = 1,
     limit: number = 10,
-    sortBy: string = "id",
+    sortBy: string = "name",
     order: SortOrder = "asc"
   ) =>
     await prisma.category.findMany({
@@ -61,6 +63,25 @@ export default class CategoryModel {
     return await prisma.category.findMany({
       where: {
         description
+      }
+    });
+  };
+
+  static getCategory = async (
+    page: number = 1,
+    limit: number = 10,
+    sortBy: string = "name",
+    order: SortOrder = "asc"
+  ) => {
+    return await prisma.category.findMany({
+      where: { parentCategoryId: null }, //only get root categories
+      include: {
+        children: true //get all children (sub categories)
+      },
+      skip: (page - 1) * limit,
+      take: limit,
+      orderBy: {
+        [sortBy]: order
       }
     });
   };

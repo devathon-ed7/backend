@@ -21,4 +21,11 @@ export interface CategoryModelInterface {
   create: (data: CategoryCreateType) => Promise<CategoryDocument>;
   delete: (id: string) => Promise<CategoryDocument>;
   update: (id: string, data: CategoryUpdateType) => Promise<CategoryDocument>;
+  parentCount: () => Promise<number>;
+  getCategory: (
+    page: number,
+    limit: number,
+    sortBy: string,
+    order: SortOrder
+  ) => Promise<CategoryDocument[]>;
 }
