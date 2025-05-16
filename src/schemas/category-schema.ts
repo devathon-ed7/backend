@@ -30,13 +30,9 @@ const updateSchema = baseCategorySchema.keys({
 
 //operation schema
 
-const createCategorySchema = Joi.object({
-  data: createSchema
-});
+const createCategorySchema = createSchema;
 
-const updateCategorySchema = Joi.object({
-  data: updateSchema
-});
+const updateCategorySchema = updateSchema;
 
 const getCategorySchema = Joi.object({
   id: id.required()

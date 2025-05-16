@@ -40,13 +40,21 @@ export const CategoryRoutes = () => {
   categoryRouter.post(
     "/",
     validatorHandler(categorySchemas.create, "body"),
-    categoryController.create
+    (req, res, next) =>
+      categoryController
+        .create(req.body)
+        .then((result) => res.send(result))
+        .catch(next)
   );
 
   categoryRouter.delete(
     "/:id",
     validatorHandler(categorySchemas.delete, "params"),
-    categoryController.delete
+    (req, res, next) =>
+      categoryController
+        .delete(req.params.id)
+        .then((result) => res.send(result))
+        .catch(next)
   );
 
   categoryRouter.put(
