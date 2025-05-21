@@ -24,9 +24,7 @@ const baseCategorySchema = Joi.object({
 const createSchema = baseCategorySchema.fork(["name"], (schema) =>
   schema.required()
 );
-const updateSchema = baseCategorySchema.keys({
-  id: id.required()
-});
+const updateSchema = baseCategorySchema
 
 //operation schema
 
