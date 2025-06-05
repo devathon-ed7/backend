@@ -30,7 +30,7 @@
     "express-async-error": "^0.0.2",
     "joi": "^17.13.3",
     "jsonwebtoken": "^9.0.2",
-    "multer": "^1.4.5-lts.1",
+    "multer": "2.0.0",
     "tsconfig-paths": "^4.2.0",
     "tslib": "^2.8.1",
     "tsoa": "^6.6.0",
